@@ -34,7 +34,7 @@ class AnaliseLexica {
 
 	Token getNextToken() throws Exception
 	{	
-		Token token;
+		// Token token;
 		int eof = -1;
 		char currchar;
 		int currchar1;
