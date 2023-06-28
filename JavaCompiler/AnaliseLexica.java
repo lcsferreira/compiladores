@@ -46,10 +46,22 @@ class AnaliseLexica {
 			
 			if(currchar1 != eof && currchar1 !=10)
 			{
-								
-	
-				if (currchar >= '0' && currchar <= '9')
-					return (new Token (currchar, TokenType.NUM));
+				if (currchar >= '0' && currchar <= '9'){
+					StringBuilder lexemaString = new StringBuilder();//criando um stringbuilder para armazenar o lexema
+					lexemaString.append(currchar); //adicionando o primeiro caractere do lexema
+					currchar1 =  arquivo.read(); //lendo o proximo caractere
+					currchar = (char) currchar1; //convertendo para char
+
+					while (currchar >= '0' && currchar <= '9'){ //enquanto for um digito
+						lexemaString.append(currchar); //adiciona o digito ao lexema
+						currchar1 =  arquivo.read(); //lendo o proximo caractere
+						currchar = (char) currchar1; //convertendo para char
+					}
+					//se o caractere lido nao for um digito, devolve ele para o arquivo
+					arquivo.unread(currchar1); //devolvendo o ultimo caractere lido
+
+					return (new Token (currchar, TokenType.NUM));//retorna o token num
+				}
 				else
 					switch (currchar){
 						case '(':
