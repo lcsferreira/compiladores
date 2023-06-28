@@ -3,22 +3,32 @@ import java.io.*;
 enum TokenType{ NUM,SOMA, MULT,APar,FPar, EOF}
 
 class Token{
-  char lexema;
+	//alterando o cosntrutor para aceitar string
+	String lexema;
   TokenType token;
 
+	Token(String l, TokenType t)
+	{ 
+		lexema=l;
+		token = t;
+	}
+
  Token (char l, TokenType t)
- 	{ lexema=l;token = t;}	
+ 	{ 
+		lexema=String.valueOf(l);
+		token = t;
+	}	
 
 }
 
 class AnaliseLexica {
-
-	BufferedReader arquivo;
+	//alterando para usar o PushbackReader, para poder devolver o caractere lido
+	PushbackReader arquivo;
 
 	AnaliseLexica(String a) throws Exception
 	{
 		
-	 	this.arquivo = new BufferedReader(new FileReader(a));
+	 	this.arquivo = new PushbackReader(new FileReader(a));
 		
 	}
 
