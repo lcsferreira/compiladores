@@ -16,6 +16,9 @@ class Compilador{
 			String codigo = backend.geraCodigo(arv);
 			System.out.println(codigo);
 
+			double resultado = backend.geraResultado(arv);
+			System.out.println("Resultado: " +resultado);
+
 		}catch(Exception e)
 		{			
 			System.out.println("Erro de compilação:\n" + e);
