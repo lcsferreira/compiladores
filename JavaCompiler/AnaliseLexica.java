@@ -1,6 +1,6 @@
 import java.io.*;
 
-enum TokenType{ NUM,SOMA, MULT, SUB, DIV,APar,FPar, EOF}
+enum TokenType{ NUM,SOMA,MULT,SUB,DIV,APar,FPar, EOF}
 
 class Token{
 	//alterando o cosntrutor para aceitar string
@@ -49,6 +49,7 @@ class AnaliseLexica {
 				if (currchar >= '0' && currchar <= '9'){
 					StringBuilder lexemaString = new StringBuilder();//criando um stringbuilder para armazenar o lexema
 					lexemaString.append(currchar); //adicionando o primeiro caractere do lexema
+
 					currchar1 =  arquivo.read(); //lendo o proximo caractere
 					currchar = (char) currchar1; //convertendo para char
 
@@ -58,9 +59,9 @@ class AnaliseLexica {
 						currchar = (char) currchar1; //convertendo para char
 					}
 					//se o caractere lido nao for um digito, devolve ele para o arquivo
-					arquivo.unread(currchar1); //devolvendo o ultimo caractere lido
+					arquivo.unread(currchar); //devolvendo o ultimo caractere lido
 
-					return (new Token (currchar, TokenType.NUM));//retorna o token num
+					return (new Token (lexemaString.toString(), TokenType.NUM));//retorna o token num
 				}
 				else
 					switch (currchar){
