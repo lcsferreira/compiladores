@@ -44,6 +44,15 @@ TOKEN :
 | <SREAD: "System.readint">
 | <FUNC: "func">
 | <VIRGULA: ",">
+| <IGUALA: "==">
+| <MENOR: "<">
+| <MAIOR: ">">
+| <SOMA: "+">
+| <SUB: "-">
+| <MULT: "*">
+| <DIV: "/">
+| <AND: "&">
+| <OR: "|">
 
 }
 
@@ -83,8 +92,16 @@ void Karloff () :
 | <SREAD> { System.out.println("Palavra reservada: System.readint");}
 | <NINT> { System.out.println("Palavra reservada: newInt");}
 | <FUNC> { System.out.println("Palavra reservada: func");}
+| <IGUALA> { System.out.println("Operador: ==");}
+| <MENOR> { System.out.println("Operador: <");}
+| <MAIOR> { System.out.println("Operador: >");}
+| <SOMA> { System.out.println("Operador: +");}
+| <SUB> { System.out.println("Operador: -");}
+| <MULT> { System.out.println("Operador: *");}
+| <DIV> { System.out.println("Operador: /");}
+| <AND> { System.out.println("Operador: &");}
+| <OR> { System.out.println("Operador: |");}
 | t=<NUM> { System.out.println("Número: "+ t.image);}
-| t=<OP> { System.out.println("Operador: "+ t.image);}
 | t=<ID> { System.out.println("Identificador: "+ t.image);}
 )*
 <EOF> 
