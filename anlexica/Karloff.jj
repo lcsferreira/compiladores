@@ -23,16 +23,27 @@ SKIP :
 TOKEN :
 {
   <MAIN: "main">
+| <VOID: "void">
 | <ACHAVES: "{">
 | <FCHAVES: "}">
 | <APARENTESES: "(">
 | <FPARENTESES: ")">
 | <PONTOVIRGULA: ";">
 | <ATRIB: "=">
-| <VOID: "void">
 | <NVAR: "newVar">
 | <NINT: "newInt">
 | <SOUT: "System.output">
+| <INT: "integer">
+| <BOOLEAN: "boolean">
+| <IF: "if">
+| <THEN: "then">
+| <WHILE: "while">
+| <REPEAT: "repeat">
+| <UNTIL: "until">
+| <RETURN: "return">
+| <SREAD: "System.readint">
+| <FUNC: "func">
+| <VIRGULA: ",">
 
 }
 
@@ -40,6 +51,7 @@ TOKEN :
 {
   <NUM : (["0"-"9"])+>
  |< ID: ["a"-"z","A"-"Z"] ( ["a"-"z","A"-"Z","0"-"9"])*>
+ |< OP: (["+","-","*","/","<",">","==","|", "&"])+>
 
 }
 
@@ -51,17 +63,29 @@ void Karloff () :
 
 (
   <MAIN> { System.out.println("Palavra reservada: main");}
-  <VOID> { System.out.println("Palavra reservada: void");}
-  <NVAR> { System.out.println("Palavra reservada: newVar");}
-  <NINT> { System.out.println("Palavra reservada: newInt");}
-  <SOUT> { System.out.println("Palavra reservada: System.output");}
+| <VOID> { System.out.println("Palavra reservada: void");}
 | <APARENTESES> { System.out.println("Abre parênteses: (");}
 | <FPARENTESES> { System.out.println("Fecha parênteses: )");}
-| <PONTOVIRGULA> { System.out.println("Ponto e vírgula: ;");}
-| <ATRIB> { System.out.println("Atribuição: =");}
 | <ACHAVES> { System.out.println("Abre chaves: {");}
 | <FCHAVES> { System.out.println("Fecha chaves: }");}
+| <NVAR> { System.out.println("Palavra reservada: newVar");}
+| <PONTOVIRGULA> { System.out.println("Ponto e vírgula: ;");}
+| <VIRGULA> { System.out.println("Vírgula: ,");}
+| <INT> { System.out.println("Palavra reservada: integer");}
+| <BOOLEAN> { System.out.println("Palavra reservada: boolean");}
+| <ATRIB> { System.out.println("Atribuição: =");}
+| <IF> { System.out.println("Palavra reservada: if");}
+| <THEN> { System.out.println("Palavra reservada: then");}
+| <WHILE> { System.out.println("Palavra reservada: while");}
+| <REPEAT> { System.out.println("Palavra reservada: repeat");}
+| <UNTIL> { System.out.println("Palavra reservada: until");}
+| <RETURN> { System.out.println("Palavra reservada: return");}
+| <SOUT> { System.out.println("Palavra reservada: System.output");}
+| <SREAD> { System.out.println("Palavra reservada: System.readint");}
+| <NINT> { System.out.println("Palavra reservada: newInt");}
+| <FUNC> { System.out.println("Palavra reservada: func");}
 | t=<NUM> { System.out.println("Número: "+ t.image);}
+| t=<OP> { System.out.println("Operador: "+ t.image);}
 | t=<ID> { System.out.println("Identificador: "+ t.image);}
 )*
 <EOF> 
