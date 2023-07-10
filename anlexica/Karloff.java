@@ -25,8 +25,19 @@ public class Karloff implements KarloffConstants {
       case NINT:
       case SOUT:
       case INT:
+      case BOOLEAN:
+      case IF:
+      case THEN:
+      case WHILE:
+      case REPEAT:
+      case UNTIL:
+      case RETURN:
+      case SREAD:
+      case FUNC:
+      case VIRGULA:
       case NUM:
       case ID:
+      case OP:
         ;
         break;
       default:
@@ -42,22 +53,6 @@ public class Karloff implements KarloffConstants {
         jj_consume_token(VOID);
            System.out.println("Palavra reservada: void");
         break;
-      case NVAR:
-        jj_consume_token(NVAR);
-           System.out.println("Palavra reservada: newVar");
-        break;
-      case NINT:
-        jj_consume_token(NINT);
-           System.out.println("Palavra reservada: newInt");
-        break;
-      case SOUT:
-        jj_consume_token(SOUT);
-           System.out.println("Palavra reservada: System.output");
-        break;
-      case INT:
-        jj_consume_token(INT);
-          System.out.println("Palavra reservada: integer");
-        break;
       case APARENTESES:
         jj_consume_token(APARENTESES);
                   System.out.println("Abre par\u00eanteses: (");
@@ -65,14 +60,6 @@ public class Karloff implements KarloffConstants {
       case FPARENTESES:
         jj_consume_token(FPARENTESES);
                   System.out.println("Fecha par\u00eanteses: )");
-        break;
-      case PONTOVIRGULA:
-        jj_consume_token(PONTOVIRGULA);
-                   System.out.println("Ponto e v\u00edrgula: ;");
-        break;
-      case ATRIB:
-        jj_consume_token(ATRIB);
-            System.out.println("Atribui\u00e7\u00e3o: =");
         break;
       case ACHAVES:
         jj_consume_token(ACHAVES);
@@ -82,9 +69,77 @@ public class Karloff implements KarloffConstants {
         jj_consume_token(FCHAVES);
               System.out.println("Fecha chaves: }");
         break;
+      case NVAR:
+        jj_consume_token(NVAR);
+           System.out.println("Palavra reservada: newVar");
+        break;
+      case PONTOVIRGULA:
+        jj_consume_token(PONTOVIRGULA);
+                   System.out.println("Ponto e v\u00edrgula: ;");
+        break;
+      case VIRGULA:
+        jj_consume_token(VIRGULA);
+              System.out.println("V\u00edrgula: ,");
+        break;
+      case INT:
+        jj_consume_token(INT);
+          System.out.println("Palavra reservada: integer");
+        break;
+      case BOOLEAN:
+        jj_consume_token(BOOLEAN);
+              System.out.println("Palavra reservada: boolean");
+        break;
+      case ATRIB:
+        jj_consume_token(ATRIB);
+            System.out.println("Atribui\u00e7\u00e3o: =");
+        break;
+      case IF:
+        jj_consume_token(IF);
+         System.out.println("Palavra reservada: if");
+        break;
+      case THEN:
+        jj_consume_token(THEN);
+           System.out.println("Palavra reservada: then");
+        break;
+      case WHILE:
+        jj_consume_token(WHILE);
+            System.out.println("Palavra reservada: while");
+        break;
+      case REPEAT:
+        jj_consume_token(REPEAT);
+             System.out.println("Palavra reservada: repeat");
+        break;
+      case UNTIL:
+        jj_consume_token(UNTIL);
+            System.out.println("Palavra reservada: until");
+        break;
+      case RETURN:
+        jj_consume_token(RETURN);
+             System.out.println("Palavra reservada: return");
+        break;
+      case SOUT:
+        jj_consume_token(SOUT);
+           System.out.println("Palavra reservada: System.output");
+        break;
+      case SREAD:
+        jj_consume_token(SREAD);
+            System.out.println("Palavra reservada: System.readint");
+        break;
+      case NINT:
+        jj_consume_token(NINT);
+           System.out.println("Palavra reservada: newInt");
+        break;
+      case FUNC:
+        jj_consume_token(FUNC);
+           System.out.println("Palavra reservada: func");
+        break;
       case NUM:
         t = jj_consume_token(NUM);
             System.out.println("N\u00famero: "+ t.image);
+        break;
+      case OP:
+        t = jj_consume_token(OP);
+           System.out.println("Operador: "+ t.image);
         break;
       case ID:
         t = jj_consume_token(ID);
@@ -115,7 +170,7 @@ public class Karloff implements KarloffConstants {
       jj_la1_init_0();
    }
    private static void jj_la1_init_0() {
-      jj_la1_0 = new int[] {0x7ffe0,0x7ffe0,};
+      jj_la1_0 = new int[] {0x3fffffe0,0x3fffffe0,};
    }
 
   /** Constructor with InputStream. */
@@ -253,7 +308,7 @@ public class Karloff implements KarloffConstants {
   /** Generate ParseException. */
   static public ParseException generateParseException() {
     jj_expentries.clear();
-    boolean[] la1tokens = new boolean[19];
+    boolean[] la1tokens = new boolean[30];
     if (jj_kind >= 0) {
       la1tokens[jj_kind] = true;
       jj_kind = -1;
@@ -267,7 +322,7 @@ public class Karloff implements KarloffConstants {
         }
       }
     }
-    for (int i = 0; i < 19; i++) {
+    for (int i = 0; i < 30; i++) {
       if (la1tokens[i]) {
         jj_expentry = new int[1];
         jj_expentry[0] = i;

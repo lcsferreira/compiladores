@@ -33,9 +33,31 @@ public interface KarloffConstants {
   /** RegularExpression Id. */
   int INT = 16;
   /** RegularExpression Id. */
-  int NUM = 17;
+  int BOOLEAN = 17;
   /** RegularExpression Id. */
-  int ID = 18;
+  int IF = 18;
+  /** RegularExpression Id. */
+  int THEN = 19;
+  /** RegularExpression Id. */
+  int WHILE = 20;
+  /** RegularExpression Id. */
+  int REPEAT = 21;
+  /** RegularExpression Id. */
+  int UNTIL = 22;
+  /** RegularExpression Id. */
+  int RETURN = 23;
+  /** RegularExpression Id. */
+  int SREAD = 24;
+  /** RegularExpression Id. */
+  int FUNC = 25;
+  /** RegularExpression Id. */
+  int VIRGULA = 26;
+  /** RegularExpression Id. */
+  int NUM = 27;
+  /** RegularExpression Id. */
+  int ID = 28;
+  /** RegularExpression Id. */
+  int OP = 29;
 
   /** Lexical state. */
   int DEFAULT = 0;
@@ -59,8 +81,19 @@ public interface KarloffConstants {
     "\"newInt\"",
     "\"System.output\"",
     "\"integer\"",
+    "\"boolean\"",
+    "\"if\"",
+    "\"then\"",
+    "\"while\"",
+    "\"repeat\"",
+    "\"until\"",
+    "\"return\"",
+    "\"System.readint\"",
+    "\"func\"",
+    "\",\"",
     "<NUM>",
     "<ID>",
+    "<OP>",
   };
 
 }
