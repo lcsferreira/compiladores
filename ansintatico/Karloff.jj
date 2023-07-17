@@ -1,0 +1,184 @@
+PARSER_BEGIN(Karloff)
+import java.io.*;
+public class Karloff {
+
+  public static void main(String args[]) throws ParseException,IOException {
+    
+ Karloff parser = new Karloff(new FileInputStream(args[0]));
+ parser.Karloff();
+  }
+
+}
+
+PARSER_END(Karloff)
+
+SKIP :
+{
+  " "
+| "\t"
+| "\n"
+| "\r"
+}
+
+TOKEN :
+{
+  <MAIN: "main">
+| <VOID: "void">
+| <ACHAVES: "{">
+| <FCHAVES: "}">
+| <APARENTESES: "(">
+| <FPARENTESES: ")">
+| <PONTOVIRGULA: ";">
+| <ATRIB: "=">
+| <NVAR: "newVar">
+| <NINT: "newInt">
+| <SOUT: "System.output">
+| <INT: "integer">
+| <BOOLEAN: "boolean">
+| <IF: "if">
+| <THEN: "then">
+| <WHILE: "while">
+| <REPEAT: "repeat">
+| <UNTIL: "until">
+| <RETURN: "return">
+| <SREAD: "System.readint">
+| <FUNC: "func">
+| <VIRGULA: ",">
+| <IGUALA: "==">
+| <MENOR: "<">
+| <MAIOR: ">">
+| <SOMA: "+">
+| <SUB: "-">
+| <MULT: "*">
+| <DIV: "/">
+| <AND: "&">
+| <OR: "|">
+
+}
+
+TOKEN :
+{
+  <NUM : (["0"-"9"])+>
+ |< ID: ["a"-"z","A"-"Z"] ( ["a"-"z","A"-"Z","0"-"9"])*>
+
+}
+
+//KARLOFF -> MAIN FUNC?
+
+void Karloff() :
+{}
+{
+  <VOID> <MAIN> Func() <EOF>
+}
+
+// MAIN -> "void" "main" "(" ")" "{" VARDECL SEQCOMANDOS "}"
+void Karloff() :
+{}
+{
+  <VOID> <MAIN> <APARENTESES> <FPARENTESES> <ACHAVES> VarDecl() SeqComandos() <FCHAVES>
+}
+
+//VARDECL -> VARDECL "newVar" TIPO TOKEN_id ";" | vazio
+void VarDecl() :
+{}
+{
+  (VarDecl() <NVAR> Tipo() <ID> <PONTOVIRGULA> | )
+}
+
+//TIPO -> "integer" | "bool"
+void Tipo() :
+{}
+{
+  (<INT> | <BOOLEAN>)
+}
+
+//SEQCOMANDOS -> COMANDO SEQCOMANDOS | vazio
+void SeqComandos() :
+{}
+{
+  (Comando() SeqComandos() | )
+}
+
+//COMANDO -> TOKEN_id "=" EXP ";"
+| TOKEN_id "(" LISTAEXP? ")" ";"
+| "if" "(" EXP ")" "then" "{" SEQCOMANDOS "}" ";"
+| "while" "(" EXP ")" "{" SEQCOMANDOS "}" ";"
+| "repeat" "{" SEQCOMANDOS "}" "until" "(" EXP ")" ";"
+| "return" EXP ";"
+| "System.output" "(" EXP ")" ";"
+| TOKEN_id "=" "System.readint" "(" ")" ";"
+
+void Comando() :
+{}
+{
+  (<ID> <ATRIB> Exp() <PONTOVIRGULA>
+  | <ID> <APARENTESES> ListaExp() <FPARENTESES> <PONTOVIRGULA>
+  | <IF> <APARENTESES> Exp() <FPARENTESES> <THEN> <ACHAVES> SeqComandos() <FCHAVES> <PONTOVIRGULA>
+  | <WHILE> <APARENTESES> Exp() <FPARENTESES> <ACHAVES> SeqComandos() <FCHAVES> <PONTOVIRGULA>
+  | <REPEAT> <ACHAVES> SeqComandos() <FCHAVES> <UNTIL> <APARENTESES> Exp() <FPARENTESES> <PONTOVIRGULA>
+  | <RETURN> Exp() <PONTOVIRGULA>
+  | <SOUT> <APARENTESES> Exp() <FPARENTESES> <PONTOVIRGULA>
+  | <ID> <ATRIB> <SREAD> <APARENTESES> <FPARENTESES> <PONTOVIRGULA>
+  )
+}
+
+//EXP -> "(" EXP OP EXP ")" | FATOR
+
+void Exp() :
+{}
+{
+  (<APARENTESES> Exp() Op() Exp() <FPARENTESES> | Fator())
+}
+
+//FATOR -> TOKEN_id | TOKEN_id "(" LISTAEXP? ")"
+| TOKEN_numliteral | "true" | "false"
+
+void Fator() :
+{}
+{
+  (<ID> | <ID> <APARENTESES> ListaExp() <FPARENTESES>
+  | <NUM>
+  | <TRUE>
+  | <FALSE>
+  )
+}
+
+//OP -> "+" | "-" | "*" | "/" | "&" | "|" | "<" | ">" | "=="
+
+void Op() :
+{}
+{
+  (<SOMA> | <SUB> | <MULT> | <DIV> | <AND> | <OR> | <MENOR> | <MAIOR> | <IGUALA>)
+}
+
+//LISTAEXP -> EXP | LISTAEXP "," EXP
+
+void ListaExp() :
+{}
+{
+  (Exp() | ListaExp() <VIRGULA> Exp())
+}
+
+//FUNC -> FUNC "func" TIPO TOKEN_id "(" LISTAARG? ")" "{" //VARDECL SEQCOMANDOS "}"
+| "func" TIPO TOKEN_id "(" LISTAARG? ")" "{" VARDECL SEQCOMANDOS "}"
+
+
+void Func() :
+{}
+{
+  (Func() <FUNC> Tipo() <ID> <APARENTESES> ListaArg() <FPARENTESES> <ACHAVES> VarDecl() SeqComandos() <FCHAVES>
+  | <FUNC> Tipo() <ID> <APARENTESES> ListaArg() <FPARENTESES> <ACHAVES> VarDecl() SeqComandos() <FCHAVES>
+  )
+}
+
+//LISTAARG -> TIPO TOKEN_id | LISTAARG "," TIPO TOKEN_id
+
+void ListaArg() :
+{}
+{
+  (Tipo() <ID> | ListaArg() <VIRGULA> Tipo() <ID>)
+}
+
+
+
+
