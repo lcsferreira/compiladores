@@ -2,12 +2,11 @@ PARSER_BEGIN(Karloff)
 import java.io.*;
 public class Karloff {
 
-  public static void main(String args[]) throws ParseException,IOException {
-    
- Karloff parser = new Karloff(new FileInputStream(args[0]));
- parser.Karloff();
-  }
+  public static void main(String[] args) throws ParseException,IOException {
 
+    Karloff parser = new Karloff(new FileInputStream(args[0]));
+    parser.Karloff();
+  }
 }
 
 PARSER_END(Karloff)
@@ -60,19 +59,18 @@ TOKEN :
 {
   <NUM : (["0"-"9"])+>
  |< ID: ["a"-"z","A"-"Z"] ( ["a"-"z","A"-"Z","0"-"9"])*>
-
+ |< BOOLVALUE: "true" | "false">
 }
 
 //KARLOFF -> MAIN FUNC?
-
 void Karloff() :
 {}
 {
-  <VOID> <MAIN> Func() <EOF>
+  Main() (Func())*
 }
 
-// MAIN -> "void" "main" "(" ")" "{" VARDECL SEQCOMANDOS "}"
-void Karloff() :
+//MAIN -> "void" "main" "(" ")" "{" VARDECL SEQCOMANDOS "}"
+void Main() :
 {}
 {
   <VOID> <MAIN> <APARENTESES> <FPARENTESES> <ACHAVES> VarDecl() SeqComandos() <FCHAVES>
@@ -82,103 +80,99 @@ void Karloff() :
 void VarDecl() :
 {}
 {
-  (VarDecl() <NVAR> Tipo() <ID> <PONTOVIRGULA> | )
+  (<NVAR> Tipo() <ID> <PONTOVIRGULA>)*
 }
 
 //TIPO -> "integer" | "bool"
 void Tipo() :
 {}
 {
-  (<INT> | <BOOLEAN>)
+  <INT> | <BOOLVALUE>
 }
 
-//SEQCOMANDOS -> COMANDO SEQCOMANDOS | vazio
+//SEQCOMANDOS -> SEQCOMANDOS COMANDO | vazio
 void SeqComandos() :
 {}
 {
-  (Comando() SeqComandos() | )
+  (Comando())*
 }
 
 //COMANDO -> TOKEN_id "=" EXP ";"
-| TOKEN_id "(" LISTAEXP? ")" ";"
-| "if" "(" EXP ")" "then" "{" SEQCOMANDOS "}" ";"
-| "while" "(" EXP ")" "{" SEQCOMANDOS "}" ";"
-| "repeat" "{" SEQCOMANDOS "}" "until" "(" EXP ")" ";"
-| "return" EXP ";"
-| "System.output" "(" EXP ")" ";"
-| TOKEN_id "=" "System.readint" "(" ")" ";"
-
+//| TOKEN_id "(" LISTAEXP? ")" ";"
+//| "if" "(" EXP ")" "then" "{" SEQCOMANDOS "}" ";"
+//| "while" "(" EXP ")" "{" SEQCOMANDOS "}" ";"
+//| "repeat" "{" SEQCOMANDOS "}" "until" "(" EXP ")" ";"
+//| "return" EXP ";"
+//| "System.output" "(" EXP ")" ";"
+//| TOKEN_id "=" "System.readint" "(" ")" ";"
 void Comando() :
 {}
 {
-  (<ID> <ATRIB> Exp() <PONTOVIRGULA>
-  | <ID> <APARENTESES> ListaExp() <FPARENTESES> <PONTOVIRGULA>
+  <ID> ComandoL()
   | <IF> <APARENTESES> Exp() <FPARENTESES> <THEN> <ACHAVES> SeqComandos() <FCHAVES> <PONTOVIRGULA>
   | <WHILE> <APARENTESES> Exp() <FPARENTESES> <ACHAVES> SeqComandos() <FCHAVES> <PONTOVIRGULA>
   | <REPEAT> <ACHAVES> SeqComandos() <FCHAVES> <UNTIL> <APARENTESES> Exp() <FPARENTESES> <PONTOVIRGULA>
   | <RETURN> Exp() <PONTOVIRGULA>
   | <SOUT> <APARENTESES> Exp() <FPARENTESES> <PONTOVIRGULA>
-  | <ID> <ATRIB> <SREAD> <APARENTESES> <FPARENTESES> <PONTOVIRGULA>
-  )
+}
+
+void ComandoAtribLinha():
+{}
+{
+  Exp() <PONTOVIRGULA>
+  |<SREAD> <APARENTESES> <FPARENTESES> <PONTOVIRGULA>
+}
+
+void ComandoL() :
+{}
+{
+  <ATRIB> ComandoAtribLinha()
+  |<APARENTESES> (ListaExp())? <FPARENTESES> <PONTOVIRGULA>
 }
 
 //EXP -> "(" EXP OP EXP ")" | FATOR
-
 void Exp() :
 {}
 {
-  (<APARENTESES> Exp() Op() Exp() <FPARENTESES> | Fator())
+  <APARENTESES> Exp() Op() Exp() <FPARENTESES>
+  | Fator()
 }
 
 //FATOR -> TOKEN_id | TOKEN_id "(" LISTAEXP? ")"
-| TOKEN_numliteral | "true" | "false"
-
+//| TOKEN_numliteral | "true" | "false"
 void Fator() :
 {}
 {
-  (<ID> | <ID> <APARENTESES> ListaExp() <FPARENTESES>
+  <ID> (<APARENTESES> (ListaExp())? <FPARENTESES>)?
   | <NUM>
-  | <TRUE>
-  | <FALSE>
-  )
+  | <BOOLEAN>
 }
 
 //OP -> "+" | "-" | "*" | "/" | "&" | "|" | "<" | ">" | "=="
-
 void Op() :
 {}
 {
-  (<SOMA> | <SUB> | <MULT> | <DIV> | <AND> | <OR> | <MENOR> | <MAIOR> | <IGUALA>)
+  <SOMA> | <SUB> | <MULT> | <DIV> | <AND> | <OR> | <MENOR> | <MAIOR> | <IGUALA>
 }
 
 //LISTAEXP -> EXP | LISTAEXP "," EXP
-
 void ListaExp() :
 {}
 {
-  (Exp() | ListaExp() <VIRGULA> Exp())
+  Exp() (<VIRGULA> Exp())*
 }
 
-//FUNC -> FUNC "func" TIPO TOKEN_id "(" LISTAARG? ")" "{" //VARDECL SEQCOMANDOS "}"
-| "func" TIPO TOKEN_id "(" LISTAARG? ")" "{" VARDECL SEQCOMANDOS "}"
-
-
+//FUNC -> FUNC "func" TIPO TOKEN_id "(" LISTAARG? ")" "{" VARDECL SEQCOMANDOS "}"
+//| "func" TIPO TOKEN_id "(" LISTAARG? ")" "{" VARDECL SEQCOMANDOS "}"
 void Func() :
 {}
 {
-  (Func() <FUNC> Tipo() <ID> <APARENTESES> ListaArg() <FPARENTESES> <ACHAVES> VarDecl() SeqComandos() <FCHAVES>
-  | <FUNC> Tipo() <ID> <APARENTESES> ListaArg() <FPARENTESES> <ACHAVES> VarDecl() SeqComandos() <FCHAVES>
-  )
+  (<FUNC> Tipo() <ID> <APARENTESES> (ListaArg())? <FPARENTESES> <ACHAVES> VarDecl() SeqComandos() <FCHAVES>)
 }
 
 //LISTAARG -> TIPO TOKEN_id | LISTAARG "," TIPO TOKEN_id
-
 void ListaArg() :
 {}
 {
-  (Tipo() <ID> | ListaArg() <VIRGULA> Tipo() <ID>)
+  Tipo() <ID> | <VIRGULA> Tipo() <ID>
 }
-
-
-
-

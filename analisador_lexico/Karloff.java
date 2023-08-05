@@ -35,9 +35,17 @@ public class Karloff implements KarloffConstants {
       case SREAD:
       case FUNC:
       case VIRGULA:
+      case IGUALA:
+      case MENOR:
+      case MAIOR:
+      case SOMA:
+      case SUB:
+      case MULT:
+      case DIV:
+      case AND:
+      case OR:
       case NUM:
       case ID:
-      case OP:
         ;
         break;
       default:
@@ -133,13 +141,45 @@ public class Karloff implements KarloffConstants {
         jj_consume_token(FUNC);
            System.out.println("Palavra reservada: func");
         break;
+      case IGUALA:
+        jj_consume_token(IGUALA);
+             System.out.println("Operador: ==");
+        break;
+      case MENOR:
+        jj_consume_token(MENOR);
+            System.out.println("Operador: <");
+        break;
+      case MAIOR:
+        jj_consume_token(MAIOR);
+            System.out.println("Operador: >");
+        break;
+      case SOMA:
+        jj_consume_token(SOMA);
+           System.out.println("Operador: +");
+        break;
+      case SUB:
+        jj_consume_token(SUB);
+          System.out.println("Operador: -");
+        break;
+      case MULT:
+        jj_consume_token(MULT);
+           System.out.println("Operador: *");
+        break;
+      case DIV:
+        jj_consume_token(DIV);
+          System.out.println("Operador: /");
+        break;
+      case AND:
+        jj_consume_token(AND);
+          System.out.println("Operador: &");
+        break;
+      case OR:
+        jj_consume_token(OR);
+         System.out.println("Operador: |");
+        break;
       case NUM:
         t = jj_consume_token(NUM);
             System.out.println("N\u00famero: "+ t.image);
-        break;
-      case OP:
-        t = jj_consume_token(OP);
-           System.out.println("Operador: "+ t.image);
         break;
       case ID:
         t = jj_consume_token(ID);
@@ -166,11 +206,16 @@ public class Karloff implements KarloffConstants {
   static private int jj_gen;
   static final private int[] jj_la1 = new int[2];
   static private int[] jj_la1_0;
+  static private int[] jj_la1_1;
   static {
       jj_la1_init_0();
+      jj_la1_init_1();
    }
    private static void jj_la1_init_0() {
-      jj_la1_0 = new int[] {0x3fffffe0,0x3fffffe0,};
+      jj_la1_0 = new int[] {0xffffffe0,0xffffffe0,};
+   }
+   private static void jj_la1_init_1() {
+      jj_la1_1 = new int[] {0x3f,0x3f,};
    }
 
   /** Constructor with InputStream. */
@@ -308,7 +353,7 @@ public class Karloff implements KarloffConstants {
   /** Generate ParseException. */
   static public ParseException generateParseException() {
     jj_expentries.clear();
-    boolean[] la1tokens = new boolean[30];
+    boolean[] la1tokens = new boolean[38];
     if (jj_kind >= 0) {
       la1tokens[jj_kind] = true;
       jj_kind = -1;
@@ -319,10 +364,13 @@ public class Karloff implements KarloffConstants {
           if ((jj_la1_0[i] & (1<<j)) != 0) {
             la1tokens[j] = true;
           }
+          if ((jj_la1_1[i] & (1<<j)) != 0) {
+            la1tokens[32+j] = true;
+          }
         }
       }
     }
-    for (int i = 0; i < 30; i++) {
+    for (int i = 0; i < 38; i++) {
       if (la1tokens[i]) {
         jj_expentry = new int[1];
         jj_expentry[0] = i;

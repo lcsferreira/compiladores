@@ -1,0 +1,17 @@
+void main() {
+  newVar integer num;
+  newVar integer results;
+  num = 5;
+  result = factorial(num);
+  System.output(result);
+}
+
+func integer factorial(integer n) {
+  newVar integer result;
+  result = 1;
+  while ((n > 1)) {
+      result = (result * n);
+      n = (n - 1);
+  };
+  return result;
+}

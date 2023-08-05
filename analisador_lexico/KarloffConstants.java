@@ -53,11 +53,27 @@ public interface KarloffConstants {
   /** RegularExpression Id. */
   int VIRGULA = 26;
   /** RegularExpression Id. */
-  int NUM = 27;
+  int IGUALA = 27;
   /** RegularExpression Id. */
-  int ID = 28;
+  int MENOR = 28;
   /** RegularExpression Id. */
-  int OP = 29;
+  int MAIOR = 29;
+  /** RegularExpression Id. */
+  int SOMA = 30;
+  /** RegularExpression Id. */
+  int SUB = 31;
+  /** RegularExpression Id. */
+  int MULT = 32;
+  /** RegularExpression Id. */
+  int DIV = 33;
+  /** RegularExpression Id. */
+  int AND = 34;
+  /** RegularExpression Id. */
+  int OR = 35;
+  /** RegularExpression Id. */
+  int NUM = 36;
+  /** RegularExpression Id. */
+  int ID = 37;
 
   /** Lexical state. */
   int DEFAULT = 0;
@@ -91,9 +107,17 @@ public interface KarloffConstants {
     "\"System.readint\"",
     "\"func\"",
     "\",\"",
+    "\"==\"",
+    "\"<\"",
+    "\">\"",
+    "\"+\"",
+    "\"-\"",
+    "\"*\"",
+    "\"/\"",
+    "\"&\"",
+    "\"|\"",
     "<NUM>",
     "<ID>",
-    "<OP>",
   };
 
 }
