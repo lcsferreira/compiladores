@@ -87,7 +87,7 @@ void VarDecl() :
 void Tipo() :
 {}
 {
-  <INT> | <BOOLVALUE>
+  <INT> | <BOOLEAN>
 }
 
 //SEQCOMANDOS -> SEQCOMANDOS COMANDO | vazio

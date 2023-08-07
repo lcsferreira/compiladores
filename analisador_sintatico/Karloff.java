@@ -62,8 +62,8 @@ public class Karloff implements KarloffConstants {
     case INT:
       jj_consume_token(INT);
       break;
-    case BOOLVALUE:
-      jj_consume_token(BOOLVALUE);
+    case BOOLEAN:
+      jj_consume_token(BOOLEAN);
       break;
     default:
       jj_la1[2] = jj_gen;
@@ -335,8 +335,8 @@ public class Karloff implements KarloffConstants {
     jj_consume_token(APARENTESES);
     switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
     case INT:
+    case BOOLEAN:
     case VIRGULA:
-    case BOOLVALUE:
       ListaArg();
       break;
     default:
@@ -354,7 +354,7 @@ public class Karloff implements KarloffConstants {
   static final public void ListaArg() throws ParseException {
     switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
     case INT:
-    case BOOLVALUE:
+    case BOOLEAN:
       Tipo();
       jj_consume_token(ID);
       break;
@@ -388,10 +388,10 @@ public class Karloff implements KarloffConstants {
       jj_la1_init_1();
    }
    private static void jj_la1_init_0() {
-      jj_la1_0 = new int[] {0x2000000,0x2000,0x10000,0xb48000,0xb48000,0x1020200,0x20200,0x1200,0x20200,0x20200,0x200,0x20000,0xf8000000,0x4000000,0x4010000,0x4010000,};
+      jj_la1_0 = new int[] {0x2000000,0x2000,0x30000,0xb48000,0xb48000,0x1020200,0x20200,0x1200,0x20200,0x20200,0x200,0x20000,0xf8000000,0x4000000,0x4030000,0x4030000,};
    }
    private static void jj_la1_init_1() {
-      jj_la1_1 = new int[] {0x0,0x0,0x40,0x20,0x20,0x30,0x30,0x0,0x30,0x30,0x0,0x30,0xf,0x0,0x40,0x40,};
+      jj_la1_1 = new int[] {0x0,0x0,0x0,0x20,0x20,0x30,0x30,0x0,0x30,0x30,0x0,0x30,0xf,0x0,0x0,0x0,};
    }
 
   /** Constructor with InputStream. */

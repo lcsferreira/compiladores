@@ -47,25 +47,25 @@ public class MaquinaPilha {
         double arg = Double.parseDouble(comando.split(" ")[1]);
         pilha.push(arg);
       }
-      else if(comando.startsWith("SOMA")){
+      else if(comando.startsWith("SUM")){
         double arg1 = pilha.pop();
         double arg2 = pilha.pop();
-        resultado = arg1 + arg2;
+        resultado = arg2 + arg1;
         pilha.push(resultado);
       }else if (comando.startsWith("SUB")){
         double arg1 = pilha.pop();
         double arg2 = pilha.pop();
-        resultado = arg1 - arg2;
+        resultado = arg2 - arg1;
         pilha.push(resultado);
       }else if (comando.startsWith("MULT")){
         double arg1 = pilha.pop();
         double arg2 = pilha.pop();
-        resultado = arg1 * arg2;
+        resultado = arg2 * arg1;
         pilha.push(resultado);
       }else if (comando.startsWith("DIV")){
         double arg1 = pilha.pop();
         double arg2 = pilha.pop();
-        resultado = arg1 / arg2;
+        resultado = arg2 / arg1;
         pilha.push(resultado);
       }else if (comando.startsWith("PRINT")){
         resultado = pilha.pop();
