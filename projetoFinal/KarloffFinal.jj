@@ -1,0 +1,348 @@
+PARSER_BEGIN(Karloff)
+import java.io.*;
+import java.util.ArrayList;
+
+enum TipoDeExpressao
+{
+    Composta,
+    Valor,
+    Chamada
+}
+
+enum TipoDeComando
+{
+    Atrib,
+    Chamada,
+    If,
+    While,
+    RepeatUntil,
+    Return,
+    SysOut
+}
+    
+class Expressao
+{
+    TipoDeExpressao tipo;
+    String valor;
+    ArrayList<Expressao> listaExpr;
+    
+    public Expressao()
+    {
+        this.listaExpr = new ArrayList<Expressao>();
+    }
+    
+    public String pretty()
+    {
+        if (this.tipo == TipoDeExpressao.Composta)
+        {
+            return ("(" + this.listaExpr.get(0).pretty() + " " + this.valor +
+                    " " + this.listaExpr.get(1).pretty() + ")");
+        }
+        else if (this.tipo == TipoDeExpressao.Valor)
+        {
+            return this.valor;
+        }
+        else
+        {
+            String prettified = this.valor + "(";
+            for (int i = 0, count = this.listaExpr.size() - 1; i < count; i++)
+                prettified += this.listaExpr.get(i).pretty() + ", ";
+            if (this.listaExpr.size() > 0)
+                prettified += this.listaExpr.get(this.listaExpr.size() - 1).pretty();
+            return (prettified + ")");
+        }
+    }
+}
+
+class Comando
+{
+    TipoDeComando tipo;
+    String id;
+    ArrayList<Expressao> listaExpr;
+    ArrayList<Comando> listaComandos;
+    
+    public Comando()
+    {
+        this.listaExpr = new ArrayList<Expressao>();
+        this.listaComandos = new ArrayList<Comando>();
+    }
+    
+    public String pretty()
+    {
+        String expr = this.listaExpr.get(0).pretty();
+        if (expr.startsWith("(") && expr.endsWith(")")) 
+            expr = expr.substring(1, (expr.length() - 1));
+        if (this.tipo == TipoDeComando.Atrib)
+            return (this.id + " = " + expr + ";");
+        else if (this.tipo == TipoDeComando.Return)
+            return ("return " + this.listaExpr.get(0).pretty() + ";");
+        else if (this.tipo == TipoDeComando.SysOut)
+            return ("std::cout << (" + expr + ");");
+        else
+        {
+            String prettified = "", commands = "";
+            if ((this.listaComandos.size() != 1) || (this.tipo == TipoDeComando.RepeatUntil) )
+            {
+                for (int i = 0, count = this.listaComandos.size(); i < count; i++)
+                    commands += "\n        " + this.listaComandos.get(i).pretty();
+                commands = "\n    {" + commands + "\n    }\n";
+            }
+            else commands = " " + this.listaComandos.get(0).pretty() + "\n";
+            if (this.tipo == TipoDeComando.If)
+                prettified = "if " + this.listaExpr.get(0).pretty() + commands;
+            else if (this.tipo == TipoDeComando.While)
+                prettified = "while " + this.listaExpr.get(0).pretty() + commands;
+            else if (this.tipo == TipoDeComando.RepeatUntil) 
+                prettified = "do" + commands + "    while " + this.listaExpr.get(0).pretty() + ";\n";
+            return prettified;
+        }
+    }
+}
+
+class VarDecl
+{
+    public String tipo;
+    public String id;
+    
+    public String pretty( boolean useSemicolon )
+    {
+        return (this.tipo + " " + this.id + ((useSemicolon) ? ";" : ""));
+    }
+}
+
+class Main
+{
+    public ArrayList<VarDecl> varDecls;
+    public ArrayList<Comando> comandos;
+    
+    public Main()
+    {
+        this.varDecls = new ArrayList<VarDecl>();
+        this.comandos = new ArrayList<Comando>();
+    }
+    
+    public String pretty()
+    {
+        String prettified = "int main( int argc, char * argv[] )\n{\n";
+        for (int i = 0, count = this.varDecls.size(); i < count; i++)
+            prettified += "    " + this.varDecls.get(i).pretty(true) + "\n";
+        for (int i = 0, count = this.comandos.size(); i < count; i++)
+            prettified += "    " + this.comandos.get(i).pretty() + "\n";
+        return (prettified + "\n}").replaceAll("(?m)^[     ]*\r?\n", "");
+    }
+}
+
+class Func
+{
+    public String tipo;
+    public String id;
+    public ArrayList<VarDecl> args;
+    
+    public ArrayList<VarDecl> varDecls;
+    public ArrayList<Comando> comandos;
+    
+    public Func()
+    {
+        this.args = new ArrayList<VarDecl>();
+        this.varDecls = new ArrayList<VarDecl>();
+        this.comandos = new ArrayList<Comando>();
+    }
+    
+    public String pretty()
+    {
+        String prettified = this.tipo + " " + this.id + "(";
+        if (args.size() > 0)
+        {
+            for (int i = 0, count = this.args.size() - 1; i < count; i++)
+            {
+                prettified += " " + this.args.get(i).pretty(false) + ",";
+            }
+            prettified += " " + this.args.get(this.args.size() - 1).pretty(false);
+            prettified += " )\n" + "{\n";
+        }
+        else prettified += ")\n{\n";
+        for (int i = 0, count = this.varDecls.size(); i < count; i++)
+            prettified += "    " + this.varDecls.get(i).pretty(true) + "\n";
+        for (int i = 0, count = this.comandos.size(); i < count; i++)
+            prettified += "    " + this.comandos.get(i).pretty() + "\n";
+        return (prettified + "\n}").replaceAll("(?m)^[     ]*\r?\n", "");
+    }
+}
+
+class Programa
+{
+    public Main main;
+    public ArrayList<Func> funcs;
+    
+    public Programa()
+    {
+        this.funcs = new ArrayList<Func>();
+    }
+    
+    public String pretty()
+    {
+        String prettified = "#include <iostream>\n\n";
+        for (int i = 0, count = this.funcs.size(); i < count; i++)
+            prettified += this.funcs.get(i).pretty() + "\n\n";
+        return (prettified + this.main.pretty() + "\n\n");
+    }
+}
+
+public class Karloff 
+{    
+    public static void prettyPrint( Programa prog )
+    {
+        System.out.println(prog.pretty());
+    }
+
+    public static void main ( String args[] ) throws ParseException, IOException
+    {
+        // Instanciar o parser da linguagem Karloff passando como argumento o arquivo
+        // com o código Karloff a ser processado:
+        Karloff parser = new Karloff(new FileInputStream(args[0]));
+    
+        // Chamar a primeira regra do parser que irá
+        // analisar o código e devolver a árvore sintática
+        Programa arvoreSintatica = parser.Karloff();
+    
+        // Passar a árvore para o pretty printer, ou gerador de código
+        prettyPrint(arvoreSintatica);
+    }
+}
+
+PARSER_END(Karloff)
+
+
+
+SKIP : { " " | "\t" | "\n" | "\r" }
+
+TOKEN : 
+{ 
+    <MAIN: "main"> | 
+    <FUNCTION: "func"> | 
+    <APARENT: "("> | 
+    <FPARENT: ")"> | 
+    <ACHAVES: "{"> | 
+    <FCHAVES: "}"> | 
+    <VOID: "void"> | 
+    <NEWVAR: "newVar"> | 
+    <SEMICOLON: ";"> |
+    <IF: "if"> |
+    <WHILE: "while"> | 
+    <REPEAT: "repeat"> | 
+    <UNTIL: "until"> |
+    <RETURN: "return"> | 
+    <THEN: "then"> |
+    <ATTRIB: "="> |
+    <COMMA: ","> |
+    <SYSOUT: "System.output"> |
+    <BOOL: "bool"> |
+    <INT: "int">
+}
+
+TOKEN :
+{
+    <OP: ("+" | "-" | "*" | "/" | "&&" | "||" | "<" | ">" | "==")> |
+    <ID: ["a"-"z","A"-"Z"] ( ["a"-"z","A"-"Z","0"-"9"])*> |
+    <VALOR: ("true" | "false" | (["0"-"9"])+)>
+}
+
+
+
+Programa Karloff () :
+{ Programa resultado = new Programa(); Func temp = null; }
+{ 
+    resultado.main=Main()
+    ( temp=Func() { resultado.funcs.add(temp); } )*
+    <EOF> 
+    { return resultado; }
+}
+	
+Main Main ():
+{ Main resultado = new Main(); VarDecl temp1 = null; Comando temp2 = null; }
+{
+    <VOID><MAIN>
+    <ACHAVES>
+    ( temp1=VarDecl() { resultado.varDecls.add(temp1); } )*
+    ( temp2=Comando() { resultado.comandos.add(temp2); } )*
+    <FCHAVES>
+    { return resultado; }
+}
+
+VarDecl VarDecl ():
+{ VarDecl resultado = new VarDecl(); Token id; }
+{
+    <NEWVAR> resultado.tipo=Tipo() id=<ID> <SEMICOLON>
+    { resultado.id = id.image; }
+    { return resultado; }
+}
+
+Comando Comando ():
+{ Comando resultado = new Comando(); Token id; Expressao temp1 = null; Comando temp2 = null; }
+{
+    ( 
+        ( id=<ID> (
+           ( <ATTRIB> temp1=Expressao() { resultado.listaExpr.add(temp1); resultado.tipo = TipoDeComando.Atrib; resultado.id=id.image; } ) |
+           ( <APARENT> ( resultado.listaExpr=ListaExpr() )? <FPARENT> { resultado.tipo = TipoDeComando.Chamada; resultado.id=id.image; } ) ) ) |
+        ( <IF> <APARENT> temp1=Expressao() { resultado.listaExpr.add(temp1); } <FPARENT> <THEN> <ACHAVES> ( temp2=Comando() { resultado.listaComandos.add(temp2); } )* <FCHAVES> { resultado.tipo = TipoDeComando.If; } ) |        
+        ( <WHILE> <APARENT> temp1=Expressao() { resultado.listaExpr.add(temp1); } <FPARENT> <ACHAVES> ( temp2=Comando() { resultado.listaComandos.add(temp2); } )* <FCHAVES> { resultado.tipo = TipoDeComando.While; } ) |
+        ( <REPEAT> <ACHAVES> ( temp2=Comando() { resultado.listaComandos.add(temp2); } )* <FCHAVES> <UNTIL> <APARENT> temp1=Expressao() { resultado.listaExpr.add(temp1); } <FPARENT> { resultado.tipo = TipoDeComando.RepeatUntil; } ) |
+        ( <RETURN> temp1=Expressao() { resultado.tipo=TipoDeComando.Return; resultado.listaExpr.add(temp1); } ) |
+        ( <SYSOUT> <APARENT> temp1=Expressao() <FPARENT> { resultado.tipo=TipoDeComando.SysOut; resultado.listaExpr.add(temp1); } )
+    )
+    <SEMICOLON>
+    { return resultado; }
+}
+
+Func Func ():
+{ Func resultado = new Func(); Token id; VarDecl temp1 = null; Comando temp2 = null; }
+{
+    <FUNCTION> resultado.tipo=Tipo() id=<ID> <APARENT> ( resultado.args=ListaArg() )? <FPARENT>
+    <ACHAVES>
+    ( temp1=VarDecl() { resultado.varDecls.add(temp1); } )*
+    ( temp2=Comando() { resultado.comandos.add(temp2); } )*
+    <FCHAVES> 
+    { resultado.id = id.image; }
+    { return resultado; }
+}
+
+Expressao Expressao ():
+{ Expressao resultado = new Expressao(); Expressao temp1 = null; Expressao temp2 = null; Token valor; }
+{
+    { resultado.tipo=TipoDeExpressao.Valor; }
+    (
+        ( <APARENT> temp1=Expressao() valor=<OP> temp2=Expressao() <FPARENT> { resultado.tipo=TipoDeExpressao.Composta; resultado.listaExpr.add(temp1); resultado.listaExpr.add(temp2); } ) |
+        ( valor=<ID> ( <APARENT> ( resultado.listaExpr=ListaExpr() )? <FPARENT> { resultado.tipo=TipoDeExpressao.Chamada; } )? ) |
+        ( valor=<VALOR> )
+    )
+    { resultado.valor = valor.image; }
+    { return resultado; }
+}
+
+ArrayList<Expressao> ListaExpr ():
+{ ArrayList<Expressao> resultado = new ArrayList<Expressao>(); ArrayList<Expressao> parte = new ArrayList<Expressao>(); Expressao temp = null; }
+{
+    temp=Expressao() ( <COMMA> parte=ListaExpr() )?
+    { resultado.add(temp); }
+    { resultado.addAll(parte); }
+    { return resultado; }
+}
+
+ArrayList<VarDecl> ListaArg ():
+{ ArrayList<VarDecl> resultado = new ArrayList<VarDecl>(); ArrayList<VarDecl> parte = new ArrayList<VarDecl>(); VarDecl temp = new VarDecl(); Token id; }
+{
+    temp.tipo=Tipo() id=<ID> ( <COMMA> parte=ListaArg() )?
+    { temp.id = id.image; }
+    { resultado.add(temp); }
+    { resultado.addAll(parte); }
+    { return resultado; }
+}
+
+String Tipo ():
+{ Token tipo; }
+{
+    ( tipo=<BOOL> | tipo=<INT> )
+    { return tipo.image; }
+}
+
+

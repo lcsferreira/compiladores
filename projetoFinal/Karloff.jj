@@ -1,0 +1,485 @@
+//Parser de KARLOFF para Python
+
+PARSER_BEGIN(Karloff)
+import java.io.*;
+public class Karloff {
+
+  public static void main(String[] args) throws ParseException,IOException {
+
+    Karloff parser = new Karloff(new FileInputStream(args[0]));
+    ArvoreKarloff arvore = parser.Karloff();
+    geraCodigo(arvore);
+  }
+
+  public static void geraCodigo(ArvoreKarloff arvore) throws IOException{
+    FileWriter arq = new FileWriter("codigo.py");
+    PrintWriter gravarArq = new PrintWriter(arq);
+
+    for(Func f : arvore.funcs){
+      gravarArq.printf(f.toString());
+    }
+
+    gravarArq.printf(arvore.main.toString());
+    arq.close();
+  }
+}
+
+class KarloffA{
+  Main main;
+
+  ArrayList<Func> funcs;
+  KarloffA(Main main, ArrayList<Func> funcs){
+    this.main = main;
+    this.funcs = funcs;
+  }
+}
+
+class Main{
+  ArrayList<VarDecl> variaveis;
+  ArrayList<Comando> comandos;
+
+  Main(ArrayList<VarDecl> variaveis, ArrayList<Comando> comandos){
+    this.variaveis = variaveis;
+    this.comandos = comandos;
+  }
+
+  public String toString(){
+    String s = "def main():\n";
+    for(VarDecl v : variaveis){
+      s += "\t" + v.toString() + "\n";
+    }
+    for(Comando c : comandos){
+      s += "\t" + c.toString() + "\n";
+    }
+    return s;
+  }
+}
+
+class VarDecl{
+  String id;
+  String tipo;
+
+  VarDecl(Token id, String tipo){
+    this.id = id.image;
+    this.tipo = tipo;
+  }
+
+  public String toString(){
+    return id + " = " + tipo;
+  }
+}
+
+class Comando{}
+
+class SeqComandos{
+  ArrayList<Comando> comandos;
+  SeqComandos(ArrayList<Comando> comandos){
+    this.comandos = comandos;
+  }
+
+  public String toString(){
+    String s = "";
+    for(Comando c : comandos){
+      s += c.toString() + "\n";
+    }
+    return s;
+  }
+}
+
+class Atrib extends Comando{
+  String id;
+  Exp exp;
+
+  Atrib(String id, Exp exp){
+    this.id = id;
+    this.exp = exp;
+  }
+
+  public String toString(){
+    return id + " = " + exp.toString();
+  }
+}
+
+class ListaExp extends Comando{
+  String id;
+  ArrayList<Exp> exps;
+
+  ListaExp(String id, ArrayList<Exp> exps){
+    this.id = id;
+    this.exps = exps;
+  }
+
+  public String toString(){
+    String s = id + "(";
+    for(Exp e : exps){
+      s += e.toString() + ", ";
+    }
+    s += ")";
+    return s;
+  }
+}
+
+class IfThen extends Comando{
+  Exp exp;
+  ArrayList<Comando> comandos;
+
+  IfThen(Exp exp, ArrayList comandos){
+    this.exp = exp;
+    this.comandos = comandos;
+  }
+
+  public String toString(){
+    String s = "if(" + exp.toString() + "):\n";
+    for(Comando c : comandos){
+      s += "\t" + c.toString() + "\n";
+    }
+    return s;
+  }
+}
+
+class While extends Comando{
+  Exp exp;
+  ArrayList<Comando> comandos;
+
+  While(Exp exp, ArrayList comandos){
+    this.exp = exp;
+    this.comandos = comandos;
+  }
+
+  public String toString(){
+    String s = "while(" + exp.toString() + "):\n";
+    for(Comando c : comandos){
+      s += "\t" + c.toString() + "\n";
+    }
+    return s;
+  }
+}
+
+class RepeatUntil extends Comando{
+  Exp exp;
+  ArrayList<Comando> comandos;
+
+  RepeatUntil(Exp exp, ArrayList comandos){
+    this.exp = exp;
+    this.comandos = comandos;
+  }
+
+  public String toString(){
+    String s = "while(True):\n";
+    for(Comando c : comandos){
+      s += "\t" + c.toString() + "\n";
+    }
+    s += "\tif(" + exp.toString() + "):\n";
+    s += "\t\tbreak\n";
+    return s;
+  }
+}
+
+class Return extends Comando{
+  Exp exp;
+
+  Return(Exp exp){
+    this.exp = exp;
+  }
+
+  public String toString(){
+    return "return " + exp.toString();
+  }
+}
+
+class Sout extends Comando{
+  Exp exp;
+
+  Sout(Exp exp){
+    this.exp = exp;
+  }
+
+  public String toString(){
+    return "print(" + exp.toString() + ")";
+  }
+}
+
+class Sread extends Comando{
+  String id;
+
+  Sread(String id){
+    this.id = id;
+  }
+
+  public String toString(){
+    return id + " = int(input())";
+  }
+}
+
+
+class Func extends Comando{
+  String id;
+  ArrayList<ListaArg> args;
+  ArrayList<Comando> comandos;
+
+  Func(String id, ArrayList args, ArrayList comandos){
+    this.id = id;
+    this.args = args;
+    this.comandos = comandos;
+  }
+
+  public String toString(){
+    String s = "def " + id + "(";
+    for(ListaArg v : args){
+      s += v.toString() + ", ";
+    }
+    s += "):\n";
+    for(Comando c : comandos){
+      s += "\t" + c.toString() + "\n";
+    }
+    return s;
+  }
+}
+
+class Exp{}
+
+class Fator extends Exp{
+  String id;
+
+  Fator(String id){
+    this.id = id;
+  }
+
+  public String toString(){
+    return id;
+  }
+}
+
+class Nvar extends Exp{
+  String id;
+
+  Nvar(String id){
+    this.id = id;
+  }
+
+  public String toString(){
+    return id;
+  }
+}
+
+class ListaExp extends Exp{
+  String id;
+  ArrayList<Exp> exps;
+
+  ListaExp(String id, ArrayList<Exp> exps){
+    this.id = id;
+    this.exps = exps;
+  }
+
+  public String toString(){
+    String s = id + "(";
+    for(Exp e : exps){
+      s += e.toString() + ", ";
+    }
+    s += ")";
+    return s;
+  }
+}
+
+class ListaArg extends Exp{
+  String id;
+  String tipo;
+
+  ListaArg(String id, String tipo){
+    this.id = id;
+    this.tipo = tipo;
+  }
+
+  public String toString(){
+    return id + " : " + tipo;
+  }
+}
+
+PARSER_END(Karloff)
+
+SKIP :
+{
+  " "
+| "\t"
+| "\n"
+| "\r"
+}
+
+TOKEN :
+{
+  <MAIN: "main">
+| <VOID: "void">
+| <ACHAVES: "{">
+| <FCHAVES: "}">
+| <APARENTESES: "(">
+| <FPARENTESES: ")">
+| <PONTOVIRGULA: ";">
+| <ATRIB: "=">
+| <NVAR: "newVar">
+| <NINT: "newInt">
+| <SOUT: "System.output">
+| <INT: "integer">
+| <BOOLEAN: "boolean">
+| <IF: "if">
+| <THEN: "then">
+| <WHILE: "while">
+| <REPEAT: "repeat">
+| <UNTIL: "until">
+| <RETURN: "return">
+| <SREAD: "System.readint">
+| <FUNC: "func">
+| <VIRGULA: ",">
+| <IGUALA: "==">
+| <MENOR: "<">
+| <MAIOR: ">">
+| <SOMA: "+">
+| <SUB: "-">
+| <MULT: "*">
+| <DIV: "/">
+| <AND: "&">
+| <OR: "|">
+
+}
+
+TOKEN :
+{
+  <NUM : (["0"-"9"])+>
+ |< ID: ["a"-"z","A"-"Z"] ( ["a"-"z","A"-"Z","0"-"9"])*>
+ |< BOOLVALUE: "true" | "false">
+}
+
+//KARLOFF -> MAIN FUNC?
+KarloffA Karloff() :
+{Main main; ArrayList<Func> funcs = new ArrayList();}
+{
+  main = Main() 
+  (funcs = (Func())?
+  {return new KarloffA(main, funcs);
+}
+
+//MAIN -> "void" "main" "(" ")" "{" VARDECL SEQCOMANDOS "}"
+Main main():
+{ArrayList <VarDecl> variaveis; ArrayList <Comando> comandos;}
+{
+  <VOID> <MAIN> <APARENTESES> <FPARENTESES> <ACHAVES> VarDecl(variaveis) SeqComandos(comandos) <FCHAVES>
+  {return new Main(comandos, variaveis);}
+}
+
+//VARDECL -> VARDECL "newVar" TIPO TOKEN_id ";" | vazio
+ArrayList<VarDecl> VarDecl() :
+{ArrayList<VarDecl> variaveis = new ArrayList(); Token var; String tipo;}
+{
+  (<NVAR> tipo = Tipo() var = <ID> <PONTOVIRGULA> {variaveis.add(new VarDecl(var.image, tipo));})*
+  {return variaveis;} 
+}
+
+//TIPO -> "integer" | "bool"
+String Tipo() :
+{Token tipo;}
+{
+  (tipo = <INT> | tipo = <BOOLEAN>)
+  {return tipo.image;}
+}
+
+//SEQCOMANDOS -> SEQCOMANDOS COMANDO | vazio
+ArrayList<Comando> SeqComandos() :
+{ArrayList <Comando> comando = new ArrayList<Comando>(); Comando comando;}
+{
+  (comando = Comando() {comandos.add(comando);})*
+  {return comandos;}
+}
+
+//COMANDO -> TOKEN_id "=" EXP ";"
+//| TOKEN_id "(" LISTAEXP? ")" ";"
+//| "if" "(" EXP ")" "then" "{" SEQCOMANDOS "}" ";"
+//| "while" "(" EXP ")" "{" SEQCOMANDOS "}" ";"
+//| "repeat" "{" SEQCOMANDOS "}" "until" "(" EXP ")" ";"
+//| "return" EXP ";"
+//| "System.output" "(" EXP ")" ";"
+//| TOKEN_id "=" "System.readint" "(" ")" ";"
+Comando Comando() :
+{Token id=null; ArrayList<Exp> listaExp; ArrayList<Comando> seqComandos; Exp e; Object c;}
+{
+  id = <ID> <ATRIB> e = Exp() <PONTOVIRGULA> {return new Atrib(id.image, e);}
+
+  | id = <ID> <APARENTESES> (listaExp = ListaExp())? <FPARENTESES> <PONTOVIRGULA> {return new ListaExp(id.image, listaExp);}
+
+  | <IF> <APARENTESES> e = Exp() <FPARENTESES> <THEN> <ACHAVES> (seqComandos = SeqComandos())? <FCHAVES> <PONTOVIRGULA> {return new IfThen(e, seqComandos);}
+
+  | <WHILE> <APARENTESES> e = Exp() <FPARENTESES> <ACHAVES> (seqComandos = SeqComandos())? <FCHAVES> <PONTOVIRGULA> {return new While(e, seqComandos);}
+
+  | <REPEAT> <ACHAVES> (seqComandos = SeqComandos())? <FCHAVES> <UNTIL> <APARENTESES> e = Exp() <FPARENTESES> <PONTOVIRGULA> {return new RepeatUntil(e, seqComandos);}
+
+  | <RETURN> e = Exp() <PONTOVIRGULA> {return new Return(e);}
+
+  | <SOUT> <APARENTESES> e = Exp() <FPARENTESES> <PONTOVIRGULA> {return new Sout(e);}
+
+  | id = <ID> <ATRIB> <SREAD> <APARENTESES> <FPARENTESES> <PONTOVIRGULA> {return new Sread(id.image);}
+}
+
+//TODO: CONSERTAR FATORAÇAO ACIMA
+
+void ComandoAtribLinha():
+{}
+{
+  Exp() <PONTOVIRGULA>
+  |<SREAD> <APARENTESES> <FPARENTESES> <PONTOVIRGULA>
+}
+
+void ComandoL() :
+{}
+{
+  <ATRIB> ComandoAtribLinha()
+  |<APARENTESES> (ListaExp())? <FPARENTESES> <PONTOVIRGULA>
+}
+
+//EXP -> "(" EXP OP EXP ")" | FATOR
+Exp Exp() :
+{Exp exp1; Exp exp2; Token op; Fator f;}
+{
+  <APARENTESES> exp1 = Exp() op = Op() exp2 = Exp() <FPARENTESES> {return new Exp(exp1, op.image, exp2);}
+  | f = Fator() {return f;}
+}
+
+//FATOR -> TOKEN_id | TOKEN_id "(" LISTAEXP? ")"
+//| TOKEN_numliteral | "true" | "false"
+Fator Fator() :
+{Token id; ArrayList<Exp> listaExp; Token num; Token bool;}
+{
+  id = <ID> (<APARENTESES> (listaExp = ListaExp())? <FPARENTESES>)? {return new Fator(id.image, listaExp);}
+  | num = <NUM> {return new Fator(num.image);}
+  | bool = <BOOLEAN> {return new Fator(bool.image);}
+}
+
+//OP -> "+" | "-" | "*" | "/" | "&" | "|" | "<" | ">" | "=="
+void Op() :
+{}
+{
+  <SOMA> | <SUB> | <MULT> | <DIV> | <AND> | <OR> | <MENOR> | <MAIOR> | <IGUALA>
+}
+
+//LISTAEXP -> EXP | LISTAEXP "," EXP
+ArrayList<Exp> ListaExp() :
+{Exp e; ArrayList<Exp> exps = new ArrayList();}
+{
+  (e = Exp() {exps.add(e);})*
+  {return exps;}
+}
+
+//FUNC -> FUNC "func" TIPO TOKEN_id "(" LISTAARG? ")" "{" VARDECL SEQCOMANDOS "}"
+//| "func" TIPO TOKEN_id "(" LISTAARG? ")" "{" VARDECL SEQCOMANDOS "}"
+ArrayList<Func> Func() :
+{ArrayList<Func> funcao = new ArrayList<Func>();ArrayList<ListaArg> listaArg;arrayList<VarDecl> variaveis; ArrayList<Comando> comandos; String tipo; Token id;}
+{
+  (funcao = Func() {funcs.add(funcao);})*
+  | <FUNC> tipo = Tipo() id = <ID> <APARENTESES> (listaArg = ListaArg())? <FPARENTESES> <ACHAVES> VarDecl(variaveis) SeqComandos(comandos) <FCHAVES> {funcs.add(new Func(id.image, listaArg, comandos));}
+  {return funcs;}
+}
+
+//LISTAARG -> TIPO TOKEN_id | LISTAARG "," TIPO TOKEN_id
+ArrayList<ListaArg> ListaArg() :
+{String Tipo; Token id; ArrayList<ListaArg> listaArg = new ArrayList<ListaArg>();}
+{
+  Tipo = Tipo() id = <ID> {listaArg.add(new ListaArg(id.image, tipo));}
+  | <VIRGULA> Tipo() id = <ID> {listaArg.add(new ListaArg(id.image, tipo));}
+}
