@@ -1,4 +1,4 @@
-PARSER_BEGIN(MyLanguage)
+PARSER_BEGIN(KarloffParser)
 import java.io.*;
 import java.util.ArrayList;
 
@@ -56,11 +56,11 @@ class VariableFactor extends Factor{
   }
 }
 
-class FunctionCallFactor extends Factor{
+class FunctionCall extends Factor{
   String id;
   ArrayList<Expression> argList;
 
-  FunctionCallFactor(String id, ArrayList<Expression> argList){
+  FunctionCall(String id, ArrayList<Expression> argList){
     this.id = id;
     this.argList = argList;
   }
@@ -234,11 +234,11 @@ class WhileLoop extends Command {
   }
 }
 
-class RepeatLoop extends Command {
+class RepeatUntilLoop extends Command {
   Expression condition;
   ArrayList<Command> commands;
 
-  RepeatLoop(Expression condition, ArrayList<Command> commands){
+  RepeatUntilLoop(Expression condition, ArrayList<Command> commands){
     this.condition = condition;
     this.commands = commands;
   }
@@ -284,9 +284,9 @@ class PrintStatement extends Command {
 }
 
 class FunctionCallCommand extends Command {
-  FunctionCallFactor functionCall;
+  FunctionCall functionCall;
 
-  FunctionCallCommand(FunctionCallFactor functionCall){
+  FunctionCallCommand(FunctionCall functionCall){
     this.functionCall = functionCall;
   }
 
@@ -306,10 +306,7 @@ class EntryPoint {
 
   public String toString() {
     String block = "#!/usr/bin python3\n\n";
-
-    for (VariableFactor variable : this.variables) {
-      block = block.concat(variable.toString() + "\n");
-    }
+    block = block + "def main() -> None:\n";
 
     for (Command command : this.commands) {
       command.setIndent(1);
@@ -405,14 +402,14 @@ class KarloffTree {
   }
 }
 
-public class MyLanguageParser {
+public class KarloffParser {
   public static void main(String args[]) throws Exception {
     FileInputStream fs;
     String filename = "scripts/script.py";
 
     switch (args.length) {
       case 0:
-        throw new Exception("There is no enough params. Template: java MyLanguageParser <source_filename.kar> <target_filename.py>");
+        throw new Exception("There is no enough params. Template: java KarloffParser <source_filename.kar> <target_filename.py>");
       case 1:
         fs = new FileInputStream(new File(args[0]));
         break;
@@ -421,12 +418,12 @@ public class MyLanguageParser {
         filename = new String(args[1]);
         break;
       default:
-        throw new Exception("Too much params. Template: java MyLanguageParser <source_filename.kar> <target_filename.py>");
+        throw new Exception("Too much params. Template: java KarloffParser <source_filename.kar> <target_filename.py>");
     }
 
-    MyLanguageParser parser = new MyLanguageParser(fs);
+    KarloffParser parser = new KarloffParser(fs);
 
-    KarloffTree tree = parser.MyLanguage();
+    KarloffTree tree = parser.Karloff();
 
     generateCode(tree, filename);
   }
@@ -449,7 +446,7 @@ public class MyLanguageParser {
   }
 }
 
-PARSER_END(MyLanguage)
+PARSER_END(KarloffParser)
 
 SKIP :
 {
@@ -499,8 +496,8 @@ TOKEN :
 
 }
 
-// MyLanguage -> MAIN FUNC?
-KarloffTree MyLanguage () :
+// Karloff -> MAIN FUNC?
+KarloffTree Karloff () :
 {
   EntryPoint entryPoint;
   ArrayList<FunctionDefinition> functions = new ArrayList();
@@ -607,8 +604,8 @@ Command ComIDAtrib (Token t) :
 }
 {
     exp=Exp()
-    {return new AssignmentCommand(t.image, exp);}
-  | <READINT> <LPAREN> <RPAREN> {return new InputAssignmentCommand(t.image);}
+    {return new AssignmentExp(t.image, exp);}
+  | <READINT> <LPAREN> <RPAREN> {return new AssignmentInput(t.image);}
 
 }
 
@@ -674,5 +671,37 @@ void ListExpL (ArrayList<Expression> expressionList) :
 {
 
   <COMMA> exp=Exp() {expressionList.add(exp);} [ListExpL(expressionList)]
+
+}
+
+// FUNC -> FUNC "func" TYPE ID "(" LISTAARG? ")" "{" VARDECL SEQCOMANDOS "}"
+// | "func" TYPE ID "(" LISTAARG? ")" "{" VARDECL SEQCOMANDOS "}"
+void Func (ArrayList<FunctionDefinition> functions) :
+{
+  DataType return_type;
+  Token t;
+  ArrayList<Argument> arguments = new ArrayList();
+  ArrayList<VariableFactor> variables = new ArrayList();
+  ArrayList<Command> commands = new ArrayList();
+}
+{
+
+  (
+    <FUNC> return_type=DataType() t=<ID> <LPAREN> ListArg(arguments) <RPAREN> <LBRACE> VarDecl(variables) SeqComandos(commands) <RBRACE> 
+    {functions.add(new FunctionDefinition(t.image, return_type, arguments, variables, commands));}
+  )*
+
+}
+
+// LISTAARG -> TIPO TOKEN_id | LISTAARG "," TIPO TOKEN_id
+
+void ListArg (ArrayList<Argument> arguments) :
+{
+  DataType type;
+  Token t;
+}
+{
+
+  (type=DataType() t=<ID> {arguments.add(new Argument(t.image, type));} (<COMMA> type=DataType() t=<ID> {arguments.add(new Argument(t.image, type));})*)*
 
 }
