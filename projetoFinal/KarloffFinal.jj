@@ -1,348 +1,678 @@
-PARSER_BEGIN(Karloff)
+PARSER_BEGIN(MyLanguage)
 import java.io.*;
 import java.util.ArrayList;
 
-enum TipoDeExpressao
+class DataType {
+  String type;
+
+  DataType(String type){
+    this.type = type;
+  }
+
+  public String toString() {
+    return this.type;
+  }
+}
+
+class Factor {}
+
+class TrueFactor extends Factor {
+  String value = "True";
+
+  public String toString() {
+    return this.value;
+  }
+}
+
+class FalseFactor extends Factor {
+  String value = "False";
+
+  public String toString() {
+    return this.value;
+  }
+}
+
+class NumberFactor extends Factor {
+  String number;
+
+  NumberFactor(String number) {
+    this.number = number;
+  }
+
+  public String toString() {
+    return this.number;
+  }
+}
+
+class VariableFactor extends Factor{
+  String id;
+
+  VariableFactor(String id){
+    this.id = id;
+  }
+
+  public String toString() {
+    return this.id;
+  }
+}
+
+class FunctionCallFactor extends Factor{
+  String id;
+  ArrayList<Expression> argList;
+
+  FunctionCallFactor(String id, ArrayList<Expression> argList){
+    this.id = id;
+    this.argList = argList;
+  }
+
+  public String toString() {
+    String block = this.id + "(";
+
+    if (!this.argList.isEmpty()) {
+
+      Expression first = this.argList.remove(0);
+      block = block.concat(first.toString());
+
+      for (Expression exp : this.argList) {
+        block = block.concat("," + exp.toString());
+      }
+
+      argList.add(0, first);
+    }
+
+    block = block + ")";
+
+    return block;
+  }
+}
+
+class Operator {
+  String operator;
+
+  Operator(String operator){
+    this.operator = operator;
+  }
+
+  public String toString() {
+    switch (this.operator) {
+      case "&":
+        return "and";
+      case "|":
+        return "or";
+      default:
+        return this.operator;
+    }
+  }
+}
+
+class Expression {}
+
+class Operation extends Expression {
+  Operator operator;
+  Expression leftExp, rightExp;
+
+  Operation(Operator operator, Expression leftExp, Expression rightExp){
+    this.operator = operator;
+    this.leftExp = leftExp;
+    this.rightExp = rightExp;
+  }
+
+  public String toString() {
+    return this.leftExp.toString() + " " + this.operator.toString() + " " + this.rightExp.toString();
+  }
+}
+
+class FinalExpression extends Expression {
+  Factor factor;
+
+  FinalExpression(Factor factor){
+    this.factor = factor;
+  }
+
+  public String toString() {
+    return this.factor.toString();
+  }
+}
+
+class Command {
+  int indent = 0;
+
+  public void setIndent(int indent){
+    this.indent = indent;
+  }
+
+  public int getIndent() {
+    return indent;
+  }
+
+  public String getTabs() {
+    String tabs = "";
+
+    for (int i = 0; i < this.indent; i++){
+      tabs = tabs.concat("\t");
+    }
+
+    return tabs;
+  }
+}
+
+class Assignment extends Command {
+  String id;
+}
+
+class AssignmentExp extends Assignment {
+  Expression exp;
+
+  AssignmentExp(String id, Expression exp) {
+    this.id = id;
+    this.exp = exp;
+  }
+
+  public String toString() {
+    return this.getTabs() + this.id + " = " + this.exp.toString() + "\n";
+  }
+}
+
+class AssignmentInput extends Assignment {
+  AssignmentInput(String id) {
+    this.id = id;
+  }
+
+  public String toString() {
+    return this.getTabs() + this.id + " = int(input())\n";
+  }
+}
+
+class IfStatement extends Command {
+  Expression condition;
+  ArrayList<Command> commands;
+
+  IfStatement(Expression condition, ArrayList<Command> commands){
+    this.condition = condition;
+    this.commands = commands;
+  }
+
+  public String toString() {
+
+    String block = this.getTabs() + "if " + this.condition.toString() + ":\n";
+
+    for (Command command : this.commands) {
+      command.setIndent(this.getIndent() + 1);
+      block = block.concat(command.toString());
+    }
+
+    if (!block.endsWith("\n")){
+      block = block + "\n";
+    }
+
+    return block;
+  }
+}
+
+class WhileLoop extends Command {
+  Expression condition;
+  ArrayList<Command> commands;
+
+  WhileLoop(Expression condition, ArrayList<Command> commands){
+    this.condition = condition;
+    this.commands = commands;
+  }
+
+  public String toString() {
+    String block = this.getTabs() + "while " + this.condition.toString() + ":\n";
+
+    for (Command command : this.commands) {
+      command.setIndent(this.getIndent() + 1);
+      block = block.concat(command.toString());
+    }
+
+    if (!block.endsWith("\n")){
+      block = block + "\n";
+    }
+
+    return block;
+  }
+}
+
+class RepeatLoop extends Command {
+  Expression condition;
+  ArrayList<Command> commands;
+
+  RepeatLoop(Expression condition, ArrayList<Command> commands){
+    this.condition = condition;
+    this.commands = commands;
+  }
+
+  public String toString() {
+    String block = this.getTabs() + "while not " + this.condition.toString() + ":\n";
+
+    for (Command command : this.commands) {
+      command.setIndent(this.getIndent() + 1);
+      block = block.concat(command.toString());
+    }
+
+    if (!block.endsWith("\n")){
+      block = block + "\n";
+    }
+
+    return block;
+  }
+}
+
+class ReturnStatement extends Command {
+  Expression exp;
+
+  ReturnStatement(Expression exp){
+    this.exp = exp;
+  }
+
+  public String toString() {
+    return this.getTabs() + "return " + this.exp.toString() + "\n";
+  }
+}
+
+class PrintStatement extends Command {
+  Expression exp;
+
+  PrintStatement(Expression exp){
+    this.exp = exp;
+  }
+
+  public String toString() {
+    return this.getTabs() + "print(" + this.exp.toString() + ")\n";
+  }
+}
+
+class FunctionCallCommand extends Command {
+  FunctionCallFactor functionCall;
+
+  FunctionCallCommand(FunctionCallFactor functionCall){
+    this.functionCall = functionCall;
+  }
+
+  public String toString() {
+    return this.getTabs() + this.functionCall.toString() + "\n";
+  }
+}
+
+class EntryPoint {
+  ArrayList<VariableFactor> variables;
+  ArrayList<Command> commands;
+
+  EntryPoint(ArrayList<VariableFactor> variables, ArrayList<Command> commands){
+    this.variables = variables;
+    this.commands = commands;
+  }
+
+  public String toString() {
+    String block = "#!/usr/bin python3\n\n";
+
+    for (VariableFactor variable : this.variables) {
+      block = block.concat(variable.toString() + "\n");
+    }
+
+    for (Command command : this.commands) {
+      command.setIndent(1);
+      block = block.concat(command.toString());
+    }
+
+    if (!block.endsWith("\n")){
+      block = block + "\n";
+    }
+
+    return block;
+  }
+}
+
+class Argument {
+  String name;
+  DataType type;
+
+  Argument(String name, DataType type){
+    this.name = name;
+    this.type = type;
+  }
+
+  public String toString() {
+    return this.name.toString() + ": " + type.toString();
+  }
+}
+
+class FunctionDefinition {
+  String name;
+  DataType return_type;
+  ArrayList<Argument> arguments;
+  ArrayList<VariableFactor> variables;
+  ArrayList<Command> commands;
+
+  FunctionDefinition(String name, DataType return_type, ArrayList<Argument> arguments, ArrayList<VariableFactor> variables, ArrayList<Command> commands){
+    this.name = name;
+    this.return_type = return_type;
+    this.arguments = arguments;
+    this.variables = variables;
+    this.commands = commands;
+  }
+
+  public String toString() {
+    String block = "def " + this.name + "(";
+
+    if (!this.arguments.isEmpty()) {
+
+      Argument first = this.arguments.remove(0);
+      block = block.concat(first.toString());
+
+      for (Argument argument : this.arguments) {
+        block = block.concat("," + argument.toString());
+      }
+
+      arguments.add(0, first);
+    }
+
+    block = block.concat(") -> " + this.return_type.toString() + ":\n");
+
+    for (Command command : this.commands) {
+      command.setIndent(1);
+      block = block.concat(command.toString());
+    }
+
+    if (!block.endsWith("\n")){
+      block = block + "\n";
+    }
+
+    return block;
+  }
+}
+
+class KarloffTree {
+  EntryPoint entryPoint;
+  ArrayList<FunctionDefinition> functions;
+
+  KarloffTree(EntryPoint entryPoint, ArrayList<FunctionDefinition> functions) {
+    this.entryPoint = entryPoint;
+    this.functions = functions;
+  }
+
+  public String toString() {
+    String block = entryPoint.toString() + "\n";
+
+    for (FunctionDefinition function : this.functions) {
+      block = block.concat(function.toString() + "\n");
+    }
+
+    block = block + "if __name__ == \"__main__\":\n\tmain()\n";
+
+    return block;
+  }
+}
+
+public class MyLanguageParser {
+  public static void main(String args[]) throws Exception {
+    FileInputStream fs;
+    String filename = "scripts/script.py";
+
+    switch (args.length) {
+      case 0:
+        throw new Exception("There is no enough params. Template: java MyLanguageParser <source_filename.kar> <target_filename.py>");
+      case 1:
+        fs = new FileInputStream(new File(args[0]));
+        break;
+      case 2:
+        fs = new FileInputStream(new File(args[0]));
+        filename = new String(args[1]);
+        break;
+      default:
+        throw new Exception("Too much params. Template: java MyLanguageParser <source_filename.kar> <target_filename.py>");
+    }
+
+    MyLanguageParser parser = new MyLanguageParser(fs);
+
+    KarloffTree tree = parser.MyLanguage();
+
+    generateCode(tree, filename);
+  }
+
+  public static void generateCode(KarloffTree prog, String filename) throws Exception {
+    File file = new File(filename);
+
+    boolean result;
+
+    result = file.createNewFile();
+
+    if(result) {
+      System.out.println("file created " + file.getCanonicalPath());
+    } else  {
+      System.out.println("File already exists at location: " + file.getCanonicalPath());
+    }
+
+    FileOutputStream outputStream = new FileOutputStream(file);
+    outputStream.write(prog.toString().getBytes());
+  }
+}
+
+PARSER_END(MyLanguage)
+
+SKIP :
 {
-    Composta,
-    Valor,
-    Chamada
-}
 
-enum TipoDeComando
-{
-    Atrib,
-    Chamada,
-    If,
-    While,
-    RepeatUntil,
-    Return,
-    SysOut
-}
-    
-class Expressao
-{
-    TipoDeExpressao tipo;
-    String valor;
-    ArrayList<Expressao> listaExpr;
-    
-    public Expressao()
-    {
-        this.listaExpr = new ArrayList<Expressao>();
-    }
-    
-    public String pretty()
-    {
-        if (this.tipo == TipoDeExpressao.Composta)
-        {
-            return ("(" + this.listaExpr.get(0).pretty() + " " + this.valor +
-                    " " + this.listaExpr.get(1).pretty() + ")");
-        }
-        else if (this.tipo == TipoDeExpressao.Valor)
-        {
-            return this.valor;
-        }
-        else
-        {
-            String prettified = this.valor + "(";
-            for (int i = 0, count = this.listaExpr.size() - 1; i < count; i++)
-                prettified += this.listaExpr.get(i).pretty() + ", ";
-            if (this.listaExpr.size() > 0)
-                prettified += this.listaExpr.get(this.listaExpr.size() - 1).pretty();
-            return (prettified + ")");
-        }
-    }
-}
+  " "
+| "\t"
+| "\n"
+| "\r"
 
-class Comando
-{
-    TipoDeComando tipo;
-    String id;
-    ArrayList<Expressao> listaExpr;
-    ArrayList<Comando> listaComandos;
-    
-    public Comando()
-    {
-        this.listaExpr = new ArrayList<Expressao>();
-        this.listaComandos = new ArrayList<Comando>();
-    }
-    
-    public String pretty()
-    {
-        String expr = this.listaExpr.get(0).pretty();
-        if (expr.startsWith("(") && expr.endsWith(")")) 
-            expr = expr.substring(1, (expr.length() - 1));
-        if (this.tipo == TipoDeComando.Atrib)
-            return (this.id + " = " + expr + ";");
-        else if (this.tipo == TipoDeComando.Return)
-            return ("return " + this.listaExpr.get(0).pretty() + ";");
-        else if (this.tipo == TipoDeComando.SysOut)
-            return ("std::cout << (" + expr + ");");
-        else
-        {
-            String prettified = "", commands = "";
-            if ((this.listaComandos.size() != 1) || (this.tipo == TipoDeComando.RepeatUntil) )
-            {
-                for (int i = 0, count = this.listaComandos.size(); i < count; i++)
-                    commands += "\n        " + this.listaComandos.get(i).pretty();
-                commands = "\n    {" + commands + "\n    }\n";
-            }
-            else commands = " " + this.listaComandos.get(0).pretty() + "\n";
-            if (this.tipo == TipoDeComando.If)
-                prettified = "if " + this.listaExpr.get(0).pretty() + commands;
-            else if (this.tipo == TipoDeComando.While)
-                prettified = "while " + this.listaExpr.get(0).pretty() + commands;
-            else if (this.tipo == TipoDeComando.RepeatUntil) 
-                prettified = "do" + commands + "    while " + this.listaExpr.get(0).pretty() + ";\n";
-            return prettified;
-        }
-    }
-}
-
-class VarDecl
-{
-    public String tipo;
-    public String id;
-    
-    public String pretty( boolean useSemicolon )
-    {
-        return (this.tipo + " " + this.id + ((useSemicolon) ? ";" : ""));
-    }
-}
-
-class Main
-{
-    public ArrayList<VarDecl> varDecls;
-    public ArrayList<Comando> comandos;
-    
-    public Main()
-    {
-        this.varDecls = new ArrayList<VarDecl>();
-        this.comandos = new ArrayList<Comando>();
-    }
-    
-    public String pretty()
-    {
-        String prettified = "int main( int argc, char * argv[] )\n{\n";
-        for (int i = 0, count = this.varDecls.size(); i < count; i++)
-            prettified += "    " + this.varDecls.get(i).pretty(true) + "\n";
-        for (int i = 0, count = this.comandos.size(); i < count; i++)
-            prettified += "    " + this.comandos.get(i).pretty() + "\n";
-        return (prettified + "\n}").replaceAll("(?m)^[     ]*\r?\n", "");
-    }
-}
-
-class Func
-{
-    public String tipo;
-    public String id;
-    public ArrayList<VarDecl> args;
-    
-    public ArrayList<VarDecl> varDecls;
-    public ArrayList<Comando> comandos;
-    
-    public Func()
-    {
-        this.args = new ArrayList<VarDecl>();
-        this.varDecls = new ArrayList<VarDecl>();
-        this.comandos = new ArrayList<Comando>();
-    }
-    
-    public String pretty()
-    {
-        String prettified = this.tipo + " " + this.id + "(";
-        if (args.size() > 0)
-        {
-            for (int i = 0, count = this.args.size() - 1; i < count; i++)
-            {
-                prettified += " " + this.args.get(i).pretty(false) + ",";
-            }
-            prettified += " " + this.args.get(this.args.size() - 1).pretty(false);
-            prettified += " )\n" + "{\n";
-        }
-        else prettified += ")\n{\n";
-        for (int i = 0, count = this.varDecls.size(); i < count; i++)
-            prettified += "    " + this.varDecls.get(i).pretty(true) + "\n";
-        for (int i = 0, count = this.comandos.size(); i < count; i++)
-            prettified += "    " + this.comandos.get(i).pretty() + "\n";
-        return (prettified + "\n}").replaceAll("(?m)^[     ]*\r?\n", "");
-    }
-}
-
-class Programa
-{
-    public Main main;
-    public ArrayList<Func> funcs;
-    
-    public Programa()
-    {
-        this.funcs = new ArrayList<Func>();
-    }
-    
-    public String pretty()
-    {
-        String prettified = "#include <iostream>\n\n";
-        for (int i = 0, count = this.funcs.size(); i < count; i++)
-            prettified += this.funcs.get(i).pretty() + "\n\n";
-        return (prettified + this.main.pretty() + "\n\n");
-    }
-}
-
-public class Karloff 
-{    
-    public static void prettyPrint( Programa prog )
-    {
-        System.out.println(prog.pretty());
-    }
-
-    public static void main ( String args[] ) throws ParseException, IOException
-    {
-        // Instanciar o parser da linguagem Karloff passando como argumento o arquivo
-        // com o código Karloff a ser processado:
-        Karloff parser = new Karloff(new FileInputStream(args[0]));
-    
-        // Chamar a primeira regra do parser que irá
-        // analisar o código e devolver a árvore sintática
-        Programa arvoreSintatica = parser.Karloff();
-    
-        // Passar a árvore para o pretty printer, ou gerador de código
-        prettyPrint(arvoreSintatica);
-    }
-}
-
-PARSER_END(Karloff)
-
-
-
-SKIP : { " " | "\t" | "\n" | "\r" }
-
-TOKEN : 
-{ 
-    <MAIN: "main"> | 
-    <FUNCTION: "func"> | 
-    <APARENT: "("> | 
-    <FPARENT: ")"> | 
-    <ACHAVES: "{"> | 
-    <FCHAVES: "}"> | 
-    <VOID: "void"> | 
-    <NEWVAR: "newVar"> | 
-    <SEMICOLON: ";"> |
-    <IF: "if"> |
-    <WHILE: "while"> | 
-    <REPEAT: "repeat"> | 
-    <UNTIL: "until"> |
-    <RETURN: "return"> | 
-    <THEN: "then"> |
-    <ATTRIB: "="> |
-    <COMMA: ","> |
-    <SYSOUT: "System.output"> |
-    <BOOL: "bool"> |
-    <INT: "int">
 }
 
 TOKEN :
 {
-    <OP: ("+" | "-" | "*" | "/" | "&&" | "||" | "<" | ">" | "==")> |
-    <ID: ["a"-"z","A"-"Z"] ( ["a"-"z","A"-"Z","0"-"9"])*> |
-    <VALOR: ("true" | "false" | (["0"-"9"])+)>
+
+  <MAIN: "main">
+| <LBRACE: "{">
+| <RBRACE: "}">
+| <VOID: "void">
+| <LPAREN: "(">
+| <RPAREN: ")">
+| <NEWVAR: "newVar">
+| <SEMICOLON: ";">
+| <COMMA: ",">
+| <INT: "integer">
+| <BOOL: "bool">
+| <ASSIGN: "=">
+| <IF: "if">
+| <THEN: "then">
+| <WHILE: "while">
+| <REPEAT: "repeat">
+| <UNTIL: "until">
+| <RETURN: "return">
+| <PRINT: "System.output">
+| <READINT: "System.readint">
+| <TRUE: "true">
+| <FALSE: "false">
+| <FUNC: "func">
+
 }
 
-
-
-Programa Karloff () :
-{ Programa resultado = new Programa(); Func temp = null; }
-{ 
-    resultado.main=Main()
-    ( temp=Func() { resultado.funcs.add(temp); } )*
-    <EOF> 
-    { return resultado; }
-}
-	
-Main Main ():
-{ Main resultado = new Main(); VarDecl temp1 = null; Comando temp2 = null; }
+TOKEN :
 {
-    <VOID><MAIN>
-    <ACHAVES>
-    ( temp1=VarDecl() { resultado.varDecls.add(temp1); } )*
-    ( temp2=Comando() { resultado.comandos.add(temp2); } )*
-    <FCHAVES>
-    { return resultado; }
+
+  <OP: "+" | "-" | "*"| "/" | "&" | "|" | "<" | ">" | "==">
+| <ID: ["a"-"z","A"-"Z"] (["a"-"z","A"-"Z","0"-"9"])* ("_" (["a"-"z","A"-"Z","0"-"9"])+)*>
+| <NUM: (["0"-"9"])+ ( "." (["0"-"9"])+ )? ("E" ("+"|"-")? (["0"-"9"])+)?>
+
 }
 
-VarDecl VarDecl ():
-{ VarDecl resultado = new VarDecl(); Token id; }
+// MyLanguage -> MAIN FUNC?
+KarloffTree MyLanguage () :
 {
-    <NEWVAR> resultado.tipo=Tipo() id=<ID> <SEMICOLON>
-    { resultado.id = id.image; }
-    { return resultado; }
+  EntryPoint entryPoint;
+  ArrayList<FunctionDefinition> functions = new ArrayList();
 }
-
-Comando Comando ():
-{ Comando resultado = new Comando(); Token id; Expressao temp1 = null; Comando temp2 = null; }
 {
-    ( 
-        ( id=<ID> (
-           ( <ATTRIB> temp1=Expressao() { resultado.listaExpr.add(temp1); resultado.tipo = TipoDeComando.Atrib; resultado.id=id.image; } ) |
-           ( <APARENT> ( resultado.listaExpr=ListaExpr() )? <FPARENT> { resultado.tipo = TipoDeComando.Chamada; resultado.id=id.image; } ) ) ) |
-        ( <IF> <APARENT> temp1=Expressao() { resultado.listaExpr.add(temp1); } <FPARENT> <THEN> <ACHAVES> ( temp2=Comando() { resultado.listaComandos.add(temp2); } )* <FCHAVES> { resultado.tipo = TipoDeComando.If; } ) |        
-        ( <WHILE> <APARENT> temp1=Expressao() { resultado.listaExpr.add(temp1); } <FPARENT> <ACHAVES> ( temp2=Comando() { resultado.listaComandos.add(temp2); } )* <FCHAVES> { resultado.tipo = TipoDeComando.While; } ) |
-        ( <REPEAT> <ACHAVES> ( temp2=Comando() { resultado.listaComandos.add(temp2); } )* <FCHAVES> <UNTIL> <APARENT> temp1=Expressao() { resultado.listaExpr.add(temp1); } <FPARENT> { resultado.tipo = TipoDeComando.RepeatUntil; } ) |
-        ( <RETURN> temp1=Expressao() { resultado.tipo=TipoDeComando.Return; resultado.listaExpr.add(temp1); } ) |
-        ( <SYSOUT> <APARENT> temp1=Expressao() <FPARENT> { resultado.tipo=TipoDeComando.SysOut; resultado.listaExpr.add(temp1); } )
-    )
-    <SEMICOLON>
-    { return resultado; }
+
+  entryPoint=MainC() Func(functions) <EOF>
+  {return new KarloffTree(entryPoint, functions);}
 }
 
-Func Func ():
-{ Func resultado = new Func(); Token id; VarDecl temp1 = null; Comando temp2 = null; }
+// MainC -> "void" "main" "(" ")" "{" VARDECL SEQCOMANDOS "}"
+EntryPoint MainC () :
 {
-    <FUNCTION> resultado.tipo=Tipo() id=<ID> <APARENT> ( resultado.args=ListaArg() )? <FPARENT>
-    <ACHAVES>
-    ( temp1=VarDecl() { resultado.varDecls.add(temp1); } )*
-    ( temp2=Comando() { resultado.comandos.add(temp2); } )*
-    <FCHAVES> 
-    { resultado.id = id.image; }
-    { return resultado; }
+  ArrayList<VariableFactor> variables = new ArrayList();
+  ArrayList<Command> commands = new ArrayList();
 }
-
-Expressao Expressao ():
-{ Expressao resultado = new Expressao(); Expressao temp1 = null; Expressao temp2 = null; Token valor; }
 {
-    { resultado.tipo=TipoDeExpressao.Valor; }
-    (
-        ( <APARENT> temp1=Expressao() valor=<OP> temp2=Expressao() <FPARENT> { resultado.tipo=TipoDeExpressao.Composta; resultado.listaExpr.add(temp1); resultado.listaExpr.add(temp2); } ) |
-        ( valor=<ID> ( <APARENT> ( resultado.listaExpr=ListaExpr() )? <FPARENT> { resultado.tipo=TipoDeExpressao.Chamada; } )? ) |
-        ( valor=<VALOR> )
-    )
-    { resultado.valor = valor.image; }
-    { return resultado; }
+
+  <VOID> <MAIN> <LPAREN> <RPAREN> <LBRACE> VarDecl(variables) SeqComandos(commands) <RBRACE>
+  {
+    return new EntryPoint(variables, commands);
+  }
 }
 
-ArrayList<Expressao> ListaExpr ():
-{ ArrayList<Expressao> resultado = new ArrayList<Expressao>(); ArrayList<Expressao> parte = new ArrayList<Expressao>(); Expressao temp = null; }
+// VarDecl -> VarDecl "newVar" TYPE ID ";"
+// | ε
+void VarDecl (ArrayList<VariableFactor> variables) :
 {
-    temp=Expressao() ( <COMMA> parte=ListaExpr() )?
-    { resultado.add(temp); }
-    { resultado.addAll(parte); }
-    { return resultado; }
+  Token t;
 }
-
-ArrayList<VarDecl> ListaArg ():
-{ ArrayList<VarDecl> resultado = new ArrayList<VarDecl>(); ArrayList<VarDecl> parte = new ArrayList<VarDecl>(); VarDecl temp = new VarDecl(); Token id; }
 {
-    temp.tipo=Tipo() id=<ID> ( <COMMA> parte=ListaArg() )?
-    { temp.id = id.image; }
-    { resultado.add(temp); }
-    { resultado.addAll(parte); }
-    { return resultado; }
+
+  (<NEWVAR> DataType() t=<ID> {variables.add(new VariableFactor(t.image));} <SEMICOLON>)*
+
 }
 
-String Tipo ():
-{ Token tipo; }
+// TYPE -> "integer" | "bool"
+DataType DataType() :
+{}
 {
-    ( tipo=<BOOL> | tipo=<INT> )
-    { return tipo.image; }
+
+  <BOOL> {return new DataType("bool");}| <INT> {return new DataType("int");}
+
 }
 
+// SeqComandos -> SeqComandos COMANDO | ε
+void SeqComandos (ArrayList<Command> commands) :
+{
+  Command c;
+}
+{
 
+  (c=Command() {commands.add(c);} <SEMICOLON>)*
+
+}
+
+// Command -> ID "=" EXP ";"
+// | ID "(" LISTAEXP? ")" ";"
+// | "if" "(" EXP ")" "then" "{" SEQCOMANDOS "}" ";"
+// | "while" "(" EXP ")" "{" SEQCOMANDOS "}" ";"
+// | "repeat" "{" SEQCOMANDOS "}" "until" "(" EXP ")"
+// | "return" EXP ";"
+// | "System.output" "(" EXP ")" ";"
+// | ID "=" "System.readint" "(" ")" ";"
+Command Command () :
+{
+  Token t;
+  Command c;
+  Expression test;
+  Expression exp;
+  ArrayList<Command> commands = new ArrayList();
+}
+{
+    t=<ID> c=ComID(t)
+    {return c;}
+  | <IF> <LPAREN> test=Exp() <RPAREN> <THEN> <LBRACE> SeqComandos(commands) <RBRACE>
+    {return new IfStatement(test, commands);}
+  | <WHILE> <LPAREN> test=Exp() <RPAREN> <LBRACE> SeqComandos(commands) <RBRACE>
+    {return new WhileLoop(test, commands);}
+  | <REPEAT> <LBRACE> SeqComandos(commands) <RBRACE> <UNTIL> <LPAREN> test=Exp() <RPAREN>
+    {return new RepeatUntilLoop(test, commands);}
+  | <RETURN> exp=Exp()
+    {return new ReturnStatement(exp);}
+  | <PRINT> <LPAREN> exp=Exp() <RPAREN>
+    {return new PrintStatement(exp);}
+
+}
+
+Command ComID (Token t) :
+{
+  Command c;
+  ArrayList<Expression> expressionList = new ArrayList();
+}
+{
+    <ASSIGN> c=ComIDAtrib(t)
+    {return c;}
+  | <LPAREN> ListExp(expressionList) <RPAREN>
+    {return new FunctionCallCommand(new FunctionCall(t.image, expressionList));}
+}
+
+Command ComIDAtrib (Token t) :
+{
+  Expression exp;
+}
+{
+    exp=Exp()
+    {return new AssignmentCommand(t.image, exp);}
+  | <READINT> <LPAREN> <RPAREN> {return new InputAssignmentCommand(t.image);}
+
+}
+
+// EXP -> "(" EXP OP EXP ")" | FACTOR
+Expression Exp () :
+{
+  Expression leftExp, rightExp;
+  Operator op;
+  Factor f;
+}
+{
+    <LPAREN> leftExp=Exp() op=Op() rightExp=Exp() <RPAREN>
+    {return new Operation(op, leftExp, rightExp);}
+  | f=Factor()
+    {return new FinalExpression(f);}
+}
+
+// FACTOR -> ID | ID "(" LISTAEXP? ")"
+// | NUM |
+// "true" | "false"
+Factor Factor () :
+{
+  Token t;
+  ArrayList<Expression> expressionList = new ArrayList();
+}
+{
+    t=<ID> [<LPAREN> ListExp(expressionList) <RPAREN>
+            {return new FunctionCall(t.image, expressionList);}]
+    {return new VariableFactor(t.image);}
+  |  t=<NUM>
+    {
+      return new NumberFactor(t.image);
+    }
+  | <TRUE> {return new TrueFactor();}
+  | <FALSE> {return new FalseFactor();}
+
+}
+
+// OP -> "+" | "-" | "*" | "/" | "&" | "|" | "<" | ">" | "=="
+Operator Op () :
+{Token t;}
+{
+
+  t=<OP> {return new Operator(t.image);}
+
+}
+
+// ListExp -> Exp | ListExp "," Exp
+void ListExp (ArrayList<Expression> expressionList) :
+{
+  Expression exp;
+}
+{
+
+    exp=Exp() {expressionList.add(exp);} [ListExpL(expressionList)]
+
+}
+
+void ListExpL (ArrayList<Expression> expressionList) :
+{
+  Expression exp;
+}
+{
+
+  <COMMA> exp=Exp() {expressionList.add(exp);} [ListExpL(expressionList)]
+
+}
