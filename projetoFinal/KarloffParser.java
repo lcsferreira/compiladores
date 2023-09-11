@@ -307,7 +307,7 @@ class EntryPoint {
 
   public String toString() {
     String block = "#!/usr/bin python3\n\n";
-    block = block + "def main() -> void:\n";
+    block = block + "def main() -> None:\n";
 
     for (Command command : this.commands) {
       command.setIndent(1);

@@ -1,0 +1,19 @@
+void main () {
+  newVar integer n;
+  newVar integer a;
+  newVar integer b;
+  newVar integer c;
+  a = 0;
+  b = 1;
+  c = 0;
+  System.output (a);
+  System.output (b);
+  n = 2;
+  while ((n < 10)) {
+    c = (a + b);
+    System.output (c);
+    a = b;
+    b = c;
+    n = (n + 1);
+  };
+}
